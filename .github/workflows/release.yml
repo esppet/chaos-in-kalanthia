@@ -28,6 +28,7 @@ jobs:
           Expand-Archive -Path ags.zip -DestinationPath ags -Force
 
       - name: Build game
+        timeout-minutes: 20
         shell: pwsh
         run: |
           $game = "${{ github.workspace }}\game\Game.agf"
