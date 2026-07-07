@@ -1,8 +1,13 @@
-# SCI Companion / build artifacts
-game/*.sco
-game/audiocache/
-game/stderr.txt
-game/stdout.txt
+# AGS build artifacts
+game/_Debug/
+game/Compiled/
+game/AudioCache/
+game/*.bak
+game/*.lock
+game/*.user
+
+# Tools (large binaries — extract from AGS zip locally)
+tools/
 
 # OS / editor
 .DS_Store
@@ -11,6 +16,3 @@ Thumbs.db
 *~
 .vscode/
 .idea/
-
-# Tools (install locally, not in repo)
-tools/

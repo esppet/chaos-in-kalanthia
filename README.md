@@ -1,59 +1,64 @@
 # Chaos in Kalanthia
 
-A comedic sci-fi point-and-click adventure in the spirit of Sierra's *Space Quest* — built with the **Sierra SCI 1.1** engine and playable in **ScummVM**.
+A Blade Runner universe point-and-click adventure built with **Adventure Game Studio (AGS)** — playable in **ScummVM**.
 
-## Why SCI 1.1?
+Russell, a replicant soldier, survives a meteor strike on the off-world colony Kalanthia. He must rescue a stranded boy from a collapsing megacomplex, salvage spaceship components from a ruined military base, escape a star destroyer-style warship, and face judgement back on Earth.
 
-Space Quest IV–VI used Sierra's SCI engine with a VGA point-and-click interface. This project uses the same technology via [SCI Companion 3](https://scicompanion.com/), so the finished game runs in ScummVM's native SCI interpreter — the same one that plays the original Space Quest games.
+## Engine
 
 | Feature | Detail |
 |---------|--------|
-| Resolution | 320×200 VGA, 256 colors |
-| Interface | Icon bar (walk, look, hand, talk, inventory) |
-| Audio | MIDI music + digital sound effects |
-| Saves | Sierra-style save/restore |
-| Runtime | ScummVM, DOSBox, or original Sierra interpreter |
+| Engine | AGS 3.6 Sierra-style template |
+| Resolution | 320×200 VGA |
+| Interface | Icon bar (walk, look, interact, talk, inventory) |
+| Runtime | ScummVM, Windows, Linux, macOS |
 
 ## Quick start
 
-1. Install [SCI Companion 3](https://scicompanion.com/) (Windows; works under Wine on Linux)
-2. **File → Open** → `game/resource.map`
-3. Press **F5** to run, or test in [ScummVM](https://www.scummvm.org/)
+1. Install [AGS Editor 3.6.2](https://www.adventuregamestudio.co.uk/create/) (Windows; runs under Wine on Linux)
+2. **File → Open** → `game/Game.agf`
+3. Press **F5** to build and run, or test the compiled game in [ScummVM](https://www.scummvm.org/)
 
 See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full workflow.
+
+## Story
+
+Three acts, branching endings:
+
+1. **Kalanthia** — Rescue Robert from collapsing Zero megacomplex (10-minute timer), find ship parts, choose whether to bring Annita and Robert to Earth
+2. **Star Destroyer** — Escape jail, disable tractor beam with hot coffee, optional diamond ring
+3. **Earth** — Face accusations of terrorism; endings depend on who you brought home
+
+Full design: [docs/DESIGN.md](docs/DESIGN.md)
 
 ## Project layout
 
 ```
-├── game/                  # SCI 1.1 game (open resource.map in SCI Companion)
-│   ├── src/               # Script source code
-│   ├── msg/               # Message definitions
-│   ├── poly/              # Walkable area polygons
-│   └── resource.map       # Resource index — open this file to start
+├── game/                  # AGS project (open Game.agf in AGS Editor)
+│   ├── Game.agf           # Project file — open this
+│   ├── GameLogic.asc      # Timer, endings, global state
+│   ├── GlobalScript.asc   # Sierra-style interface
+│   └── room*.asc          # Room scripts (stubs for key scenes)
 ├── docs/
-│   ├── DESIGN.md          # Story, puzzles, rooms (fill this in)
-│   ├── GETTING_STARTED.md # Toolchain and workflow
-│   └── AGS_ALTERNATIVE.md # Plan B if SCI is too steep
+│   ├── DESIGN.md          # Full story, puzzles, room map
+│   └── GETTING_STARTED.md # Toolchain and workflow
+├── tools/Linux/           # AGS Linux runtime (for testing builds)
 └── scripts/
-    └── run-scummvm.sh     # Launch game in ScummVM from CLI
+    └── run-scummvm.sh     # Launch compiled game in ScummVM
 ```
 
 ## Current state
 
-The game boots to a title screen and includes a demo room with the full SCI1.1 interface (icon bar, inventory, save/restore, death handler). Replace the template art and scripts with your own content.
-
-## Design your game
-
-Open [docs/DESIGN.md](docs/DESIGN.md) and fill in the premise, characters, rooms, and puzzles.
+- AGS Sierra-style project configured for *Chaos in Kalanthia*
+- Protagonist renamed to Russell
+- Intro sequence, Zero collapse timer, and ending logic scaffolded in `GameLogic.asc`
+- Room script stubs for key scenes (Zero rescue, ship hangar, jail escape, tribunal)
+- Placeholder art from AGS template — replace with Blade Runner–inspired assets
 
 ## ScummVM compatibility
 
-ScummVM detects the `game/` folder as an SCI 1.1 game automatically. No special packaging needed — point ScummVM at the directory containing `resource.map`.
-
-## Alternative engine
-
-Prefer something easier? [Adventure Game Studio](https://www.adventuregamestudio.co.uk/) with the Sierra-style template also produces ScummVM-compatible games. See [docs/AGS_ALTERNATIVE.md](docs/AGS_ALTERNATIVE.md).
+Build the game in AGS Editor (**Build → Build EXE(s)**), then point ScummVM at the output folder containing `chaos-in-kalanthia.exe` (or the Linux binary).
 
 ## License
 
-Game content: TBD. SCI template resources are based on the [SCI11 Template Redux](https://github.com/EricOakford/SCI11_Template_Redux) project.
+Fan project. Blade Runner is property of its respective rights holders. AGS template assets follow the [AGS license](https://adventuregamestudio.github.io/ags-manual/Copyright.html).

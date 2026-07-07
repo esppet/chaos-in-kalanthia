@@ -4,84 +4,90 @@
 
 | Tool | Purpose | Download |
 |------|---------|----------|
-| **SCI Companion 3** | Editor, compiler, resource tools | [scicompanion.com](https://scicompanion.com/) |
-| **ScummVM** | Run and test the game | [scummvm.org/downloads](https://www.scummvm.org/downloads/) |
-| **DOSBox** | Optional fallback runner (bundled with SCI Companion) | [dosbox.com](https://www.dosbox.com/) |
+| **AGS Editor 3.6.2** | Create and build the game | [adventuregamestudio.co.uk/create](https://www.adventuregamestudio.co.uk/create/) |
+| **ScummVM** | Test ScummVM-compatible builds | [scummvm.org/downloads](https://www.scummvm.org/downloads/) |
 
-SCI Companion is a Windows application. On Linux, run it via Wine or use a Windows VM.
+AGS Editor is a Windows application. On Linux, run it via Wine or use a Windows VM. A Linux AGS runtime is included in `tools/Linux/` for testing compiled builds.
 
 ## Open the project
 
-1. Launch **SCI Companion 3**
-2. **File → Open** → select `game/resource.map`
-3. The Explorer tab shows all game resources (views, pics, scripts, sounds, etc.)
+1. Launch **AGS Editor 3.6.2**
+2. **File → Open** → select `game/Game.agf`
+3. The editor loads the Sierra-style template with Chaos in Kalanthia settings
 
 ## Run the game
 
-### In SCI Companion
+### In AGS Editor
 
-- Press **F5** or click the green play button
-- Default profile uses DOSBox; switch to the **ScummVM** profile in **Game → Properties** for closer-to-production testing
+Press **F5** to compile and run.
 
-### In ScummVM
+### Build for distribution
 
-1. Open ScummVM
-2. **Add Game…**
-3. Choose the `game/` directory (the folder containing `resource.map`)
-4. ScummVM should detect it as an SCI game
-5. Launch
+1. **Build → Build EXE(s)**
+2. Output goes to `game/Compiled/` (Windows) or use **Build → Target: Linux** for a Linux binary
+3. Test in ScummVM: **Add Game** → point at the folder with the `.exe` or Linux binary
 
-Or from the command line (once ScummVM is installed):
+### From command line (Linux build)
 
 ```bash
 ./scripts/run-scummvm.sh
 ```
 
-## Create content
+Requires a compiled game in `game/Compiled/`.
 
-Work through the official [SCI 1.1 step-by-step tutorial](https://scicompanion.com/Documentation/sci11_tutorial.html). The template already includes:
+## Development workflow
 
-- Title screen with Start / Restore / Quit (`src/rTitle.sc`)
-- Icon bar with walk, look, use, talk, inventory (`src/IconBar.sc`)
-- Demo room with ego, obstacles, and messages (`src/rTestRoom.sc`)
-- Save / restore, death handler, debug mode
+1. Read [DESIGN.md](DESIGN.md) for the full story and room map
+2. Create rooms in AGS Editor matching the room numbers in the design doc
+3. Each room auto-links to `room{N}.asc` script files already in the repo
+4. Draw backgrounds (320×200), place walkable areas, add hotspots and characters
+5. Implement puzzles in room scripts and `GameLogic.asc`
+6. Build and test in ScummVM regularly
 
-### Typical workflow
+## Key scripts
 
-1. **Draw a background** — Pic editor (320×200 VGA bitmap)
-2. **Create a room script** — Copy `rTestRoom.sc`, assign a new room number in `game.ini`
-3. **Add views** — Character / object sprites with loops and cels
-4. **Write messages** — Message editor for all in-game text
-5. **Hook up puzzles** — `Feature`, `Interact`, `Approach` classes in room scripts
-6. **Compile** — SCI Companion rebuilds `resource.000` automatically
-7. **Test** — F5 or ScummVM
+| File | Purpose |
+|------|---------|
+| `GameLogic.asc` | Acts, Zero timer, ship components, endings |
+| `GameLogic.ash` | Room/inventory/flag constants |
+| `GlobalScript.asc` | Sierra interface, intro sequence, ego responses |
+| `room12.asc` | Zero rescue — 10-minute collapse timer |
+| `room30.asc` | Spaceship hangar — departure choice |
+| `room40.asc` | Star destroyer jail escape |
+| `room43.asc` | Tractor beam — hot coffee puzzle |
+| `room50.asc` | Earth tribunal — ending resolution |
+| `room51.asc` | Bad ending — gas chamber |
 
-## Key files
+## Adding rooms
 
-```
-game/
-├── resource.map      ← Open this in SCI Companion
-├── resource.000      ← Compiled game resources (auto-generated)
-├── resource.msg      ← Message data
-├── game.ini          ← Resource name registry
-├── src/              ← Script source (.sc)
-├── msg/              ← Message headers (.shm)
-├── poly/             ← Walkable polygon headers (.shp)
-└── RESOURCE.CFG      ← DOS audio/video driver config
-```
+Room numbers are defined in `GameLogic.ash`. To add a room:
 
-## Rebuilding resources
+1. In AGS Editor: **Rooms → Create new room** with the matching number
+2. The corresponding `room{N}.asc` script is picked up automatically
+3. Register hotspots and characters in the editor; implement logic in the script
 
-If resources get out of sync:
+## Inventory items
 
-- **Tools → Rebuild resources** in SCI Companion
+Create inventory items in AGS Editor matching the IDs in `GameLogic.ash`:
 
-## Version control tips
+| ID | Item |
+|----|------|
+| 1 | Fuel cell |
+| 2 | Nav module |
+| 3 | Life support unit |
+| 4 | Hot coffee |
+| 5 | Diamond ring |
+| 6 | Wire |
 
-- Commit `src/`, `msg/`, `poly/`, and `game.ini` — these are your source
-- `resource.000` / `resource.map` change on every compile; commit them too so the game is playable without rebuilding
-- `.sco` object files are build artifacts (gitignored)
+## ScummVM notes
 
-## Alternative: AGS
+- Build with AGS 3.6.x for best ScummVM compatibility
+- ScummVM's AGS engine supports Sierra-style games well ([compatibility list](https://www.scummvm.org/compatibility/))
+- Test early and often — some AGS 3.6 features have partial ScummVM support
 
-If SCI feels too low-level, [Adventure Game Studio](https://www.adventuregamestudio.co.uk/) with the **Sierra-style template** is a good alternative. AGS games also run in ScummVM. See `docs/AGS_ALTERNATIVE.md`.
+## Resources
+
+- [AGS Manual](https://adventuregamestudio.github.io/ags-manual/)
+- [Sierra-style template docs](https://adventuregamestudio.github.io/ags-manual/v3/TemplateSierraStyle.html)
+- [AGS Forums](https://www.adventuregamestudio.co.uk/forums/)
+- [ScummVM AGS wiki](https://wiki.scummvm.org/index.php/AGS)

@@ -1,0 +1,4 @@
+Chaos in Kalanthia
+
+Blade Runner universe point-and-click adventure built with the AGS Sierra-style template.
+320x200 VGA interface with walk, look, interact, talk, and inventory verbs.

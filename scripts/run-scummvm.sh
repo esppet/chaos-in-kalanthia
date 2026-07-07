@@ -2,7 +2,6 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-GAME_DIR="$ROOT/game"
 
 if ! command -v scummvm &>/dev/null; then
   echo "ScummVM is not installed."
@@ -11,9 +10,13 @@ if ! command -v scummvm &>/dev/null; then
   exit 1
 fi
 
-if [[ ! -f "$GAME_DIR/resource.map" ]]; then
-  echo "Game data not found at $GAME_DIR"
-  exit 1
-fi
+# Prefer compiled game output; fall back to game source folder
+for dir in "$ROOT/game/Compiled" "$ROOT/game"; do
+  if compgen -G "$dir"/*.exe &>/dev/null || [[ -f "$dir/chaos-in-kalanthia" ]]; then
+    exec scummvm --path="$dir"
+  fi
+done
 
-exec scummvm --path="$GAME_DIR"
+echo "No compiled game found."
+echo "Build the game in AGS Editor (Build → Build EXE(s)), then run this script again."
+exit 1
