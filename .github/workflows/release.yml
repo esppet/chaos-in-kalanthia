@@ -29,11 +29,13 @@ jobs:
 
       - name: Build game
         shell: pwsh
+        working-directory: game
         run: |
-          $game = "${{ github.workspace }}\game\Game.agf"
           $editor = "${{ github.workspace }}\ags\AGSEditor.exe"
-          & $editor /compile $game
+          & $editor /compile "${{ github.workspace }}\game\Game.agf"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Write-Host "=== Compiled output ==="
+          if (Test-Path Compiled) { Get-ChildItem -Recurse Compiled } else { Write-Error "No Compiled folder" }
 
       - name: Package Windows build
         shell: pwsh
@@ -41,21 +43,37 @@ jobs:
           $version = "${{ steps.version.outputs.version }}"
           $out = "dist/chaos-in-kalanthia-${version}-windows"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
-          Copy-Item -Recurse "game/Compiled/Windows/*" $out/
+
+          if (Test-Path "game/Compiled/Windows") {
+            Copy-Item -Recurse "game/Compiled/Windows/*" $out/
+          } elseif (Test-Path "game/Compiled/Data") {
+            # Fallback: package data + engine for ScummVM / acwin
+            Copy-Item -Recurse "game/Compiled/Data/*" $out/
+            Copy-Item "${{ github.workspace }}\ags\acwin.exe" "$out\chaos-in-kalanthia.exe"
+          } else {
+            Write-Error "No build output found in game/Compiled"
+          }
+
           Compress-Archive -Path $out -DestinationPath "dist/chaos-in-kalanthia-${version}-windows.zip" -Force
 
-      - name: Package Linux build
+      - name: Package Linux runtime bundle
         shell: pwsh
         run: |
           $version = "${{ steps.version.outputs.version }}"
           $out = "dist/chaos-in-kalanthia-${version}-linux"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+
           if (Test-Path "game/Compiled/Linux") {
-            New-Item -ItemType Directory -Force -Path $out | Out-Null
             Copy-Item -Recurse "game/Compiled/Linux/*" $out/
-            tar -czf "dist/chaos-in-kalanthia-${version}-linux.tar.gz" -C dist "chaos-in-kalanthia-${version}-linux"
+          } elseif (Test-Path "game/Compiled/Data") {
+            Copy-Item -Recurse "game/Compiled/Data/*" $out/
+            Copy-Item -Recurse "${{ github.workspace }}\ags\Linux\ags64" $out\
+            Copy-Item -Recurse "${{ github.workspace }}\ags\Linux\lib64" $out\
           } else {
-            Write-Warning "Linux build not found — Windows-only release"
+            Write-Error "No build output for Linux bundle"
           }
+
+          tar -czf "dist/chaos-in-kalanthia-${version}-linux.tar.gz" -C dist "chaos-in-kalanthia-${version}-linux"
 
       - name: Package source
         shell: pwsh
@@ -80,7 +98,7 @@ jobs:
 
             ### Run
             - **Windows:** extract zip, run `chaos-in-kalanthia.exe`
-            - **Linux:** extract tar.gz, run `./chaos-in-kalanthia` or `./ags64 --path .`
+            - **Linux:** extract tar.gz, run `./ags64 --path .`
             - **ScummVM:** add the game folder — ScummVM detects AGS games automatically
           files: dist/*
           draft: false
