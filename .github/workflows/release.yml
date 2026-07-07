@@ -32,9 +32,16 @@ jobs:
         run: |
           $game = "${{ github.workspace }}\game\Game.agf"
           $editor = "${{ github.workspace }}\ags\AGSEditor.exe"
-          & $editor /compile $game
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Write-Host "=== Searching for Compiled folders ==="
+          $proc = Start-Process -FilePath $editor -ArgumentList "/compile", $game -Wait -PassThru -RedirectStandardOutput "compile-out.txt" -RedirectStandardError "compile-err.txt"
+          Write-Host "=== AGS stdout ==="
+          Get-Content compile-out.txt -ErrorAction SilentlyContinue
+          Write-Host "=== AGS stderr ==="
+          Get-Content compile-err.txt -ErrorAction SilentlyContinue
+          Write-Host "Exit code: $($proc.ExitCode)"
+          if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
+          Write-Host "=== game/ directory ==="
+          Get-ChildItem -Recurse "${{ github.workspace }}\game" | Select-Object FullName
+          Write-Host "=== Compiled folders ==="
           Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Directory -Filter "Compiled" -ErrorAction SilentlyContinue | ForEach-Object {
             Write-Host "Found: $($_.FullName)"
             Get-ChildItem -Recurse $_.FullName
@@ -114,6 +121,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
+          allowUpdates: true
           name: Chaos in Kalanthia v${{ steps.version.outputs.version }}
           body: |
             ## Chaos in Kalanthia v${{ steps.version.outputs.version }}
