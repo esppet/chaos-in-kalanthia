@@ -29,13 +29,42 @@ jobs:
 
       - name: Build game
         shell: pwsh
-        working-directory: game
         run: |
+          $game = "${{ github.workspace }}\game\Game.agf"
           $editor = "${{ github.workspace }}\ags\AGSEditor.exe"
-          & $editor /compile "${{ github.workspace }}\game\Game.agf"
+          & $editor /compile $game
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Write-Host "=== Compiled output ==="
-          if (Test-Path Compiled) { Get-ChildItem -Recurse Compiled } else { Write-Error "No Compiled folder" }
+          Write-Host "=== Searching for Compiled folders ==="
+          Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Directory -Filter "Compiled" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Found: $($_.FullName)"
+            Get-ChildItem -Recurse $_.FullName
+          }
+
+      - name: Locate build output
+        id: paths
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "${{ github.workspace }}\game\Compiled",
+            "${{ github.workspace }}\ags\Compiled"
+          )
+          $compiled = $null
+          foreach ($c in $candidates) {
+            if (Test-Path $c) { $compiled = $c; break }
+          }
+          if (-not $compiled) { Write-Error "No Compiled folder found" }
+
+          $windows = Join-Path $compiled "Windows"
+          $data = Join-Path $compiled "Data"
+          if (Test-Path $windows) {
+            echo "bundle=$windows" >> $env:GITHUB_OUTPUT
+            echo "type=windows" >> $env:GITHUB_OUTPUT
+          } elseif (Test-Path $data) {
+            echo "bundle=$data" >> $env:GITHUB_OUTPUT
+            echo "type=data" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Error "Compiled folder has no Windows or Data subfolder: $compiled"
+          }
 
       - name: Package Windows build
         shell: pwsh
@@ -44,14 +73,11 @@ jobs:
           $out = "dist/chaos-in-kalanthia-${version}-windows"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
 
-          if (Test-Path "game/Compiled/Windows") {
-            Copy-Item -Recurse "game/Compiled/Windows/*" $out/
-          } elseif (Test-Path "game/Compiled/Data") {
-            # Fallback: package data + engine for ScummVM / acwin
-            Copy-Item -Recurse "game/Compiled/Data/*" $out/
-            Copy-Item "${{ github.workspace }}\ags\acwin.exe" "$out\chaos-in-kalanthia.exe"
+          if ("${{ steps.paths.outputs.type }}" -eq "windows") {
+            Copy-Item -Recurse "${{ steps.paths.outputs.bundle }}\*" $out/
           } else {
-            Write-Error "No build output found in game/Compiled"
+            Copy-Item -Recurse "${{ steps.paths.outputs.bundle }}\*" $out/
+            Copy-Item "${{ github.workspace }}\ags\acwin.exe" "$out\chaos-in-kalanthia.exe"
           }
 
           Compress-Archive -Path $out -DestinationPath "dist/chaos-in-kalanthia-${version}-windows.zip" -Force
@@ -63,14 +89,17 @@ jobs:
           $out = "dist/chaos-in-kalanthia-${version}-linux"
           New-Item -ItemType Directory -Force -Path $out | Out-Null
 
-          if (Test-Path "game/Compiled/Linux") {
-            Copy-Item -Recurse "game/Compiled/Linux/*" $out/
-          } elseif (Test-Path "game/Compiled/Data") {
-            Copy-Item -Recurse "game/Compiled/Data/*" $out/
-            Copy-Item -Recurse "${{ github.workspace }}\ags\Linux\ags64" $out\
-            Copy-Item -Recurse "${{ github.workspace }}\ags\Linux\lib64" $out\
+          $linuxCompiled = "${{ github.workspace }}\game\Compiled\Linux"
+          if (Test-Path $linuxCompiled) {
+            Copy-Item -Recurse "$linuxCompiled\*" $out/
           } else {
-            Write-Error "No build output for Linux bundle"
+            if ("${{ steps.paths.outputs.type }}" -eq "windows") {
+              Copy-Item -Recurse "${{ steps.paths.outputs.bundle }}\*" $out/
+            } else {
+              Copy-Item -Recurse "${{ steps.paths.outputs.bundle }}\*" $out/
+            }
+            Copy-Item "${{ github.workspace }}\ags\Linux\ags64" $out\
+            Copy-Item -Recurse "${{ github.workspace }}\ags\Linux\lib64" $out\
           }
 
           tar -czf "dist/chaos-in-kalanthia-${version}-linux.tar.gz" -C dist "chaos-in-kalanthia-${version}-linux"
