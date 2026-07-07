@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download AGS Editor
+        shell: pwsh
+        run: |
+          $url = "https://www.adventuregamestudio.co.uk/releases/finals/AGS-3.6.2P9/AGS-3.6.2.19-P9.zip"
+          Invoke-WebRequest -Uri $url -OutFile ags.zip
+          Expand-Archive -Path ags.zip -DestinationPath ags -Force
+
+      - name: Build game
+        shell: pwsh
+        run: |
+          $game = "${{ github.workspace }}\game\Game.agf"
+          $editor = "${{ github.workspace }}\ags\AGSEditor.exe"
+          & $editor /compile $game
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Package Windows build
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $out = "dist/chaos-in-kalanthia-${version}-windows"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Copy-Item -Recurse "game/Compiled/Windows/*" $out/
+          Compress-Archive -Path $out -DestinationPath "dist/chaos-in-kalanthia-${version}-windows.zip" -Force
+
+      - name: Package Linux build
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $out = "dist/chaos-in-kalanthia-${version}-linux"
+          if (Test-Path "game/Compiled/Linux") {
+            New-Item -ItemType Directory -Force -Path $out | Out-Null
+            Copy-Item -Recurse "game/Compiled/Linux/*" $out/
+            tar -czf "dist/chaos-in-kalanthia-${version}-linux.tar.gz" -C dist "chaos-in-kalanthia-${version}-linux"
+          } else {
+            Write-Warning "Linux build not found — Windows-only release"
+          }
+
+      - name: Package source
+        shell: pwsh
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          Compress-Archive -Path game -DestinationPath "dist/chaos-in-kalanthia-${version}-source.zip" -Force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Chaos in Kalanthia v${{ steps.version.outputs.version }}
+          body: |
+            ## Chaos in Kalanthia v${{ steps.version.outputs.version }}
+
+            Blade Runner universe point-and-click adventure (AGS / ScummVM compatible).
+
+            ### Downloads
+            - **Windows** — `chaos-in-kalanthia-*-windows.zip`
+            - **Linux** — `chaos-in-kalanthia-*-linux.tar.gz`
+            - **Source** — `chaos-in-kalanthia-*-source.zip` (open in AGS Editor)
+
+            ### Run
+            - **Windows:** extract zip, run `chaos-in-kalanthia.exe`
+            - **Linux:** extract tar.gz, run `./chaos-in-kalanthia` or `./ags64 --path .`
+            - **ScummVM:** add the game folder — ScummVM detects AGS games automatically
+          files: dist/*
+          draft: false
+          prerelease: true

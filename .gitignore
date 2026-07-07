@@ -9,6 +9,9 @@ game/*.user
 # Tools (large binaries — extract from AGS zip locally)
 tools/
 
+# Release packages
+dist/
+
 # OS / editor
 .DS_Store
 Thumbs.db
