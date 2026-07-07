@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 0.1.0)"
+        required: true
+        default: "0.1.0"
 
 permissions:
   contents: write
@@ -18,9 +24,22 @@ jobs:
       - name: Determine version
         id: version
         shell: bash
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Cache AGS Editor
+        uses: actions/cache@v4
+        id: ags-cache
+        with:
+          path: ags
+          key: ags-editor-3.6.2.19-p9
 
       - name: Download AGS Editor
+        if: steps.ags-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
           $url = "https://www.adventuregamestudio.co.uk/releases/finals/AGS-3.6.2P9/AGS-3.6.2.19-P9.zip"
@@ -28,7 +47,7 @@ jobs:
           Expand-Archive -Path ags.zip -DestinationPath ags -Force
 
       - name: Build game
-        timeout-minutes: 20
+        timeout-minutes: 60
         shell: pwsh
         run: |
           $game = "${{ github.workspace }}\game\Game.agf"
@@ -119,6 +138,7 @@ jobs:
           Compress-Archive -Path game -DestinationPath "dist/chaos-in-kalanthia-${version}-source.zip" -Force
 
       - name: Create GitHub Release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
