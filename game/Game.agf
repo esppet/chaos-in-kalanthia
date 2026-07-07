@@ -15,7 +15,7 @@
       <AudioIndexer>0</AudioIndexer>
       <AutoMoveInWalkMode>True</AutoMoveInWalkMode>
       <BackwardsText>False</BackwardsText>
-      <BuildTargets>Windows</BuildTargets>
+      <BuildTargets xml:space="preserve">Windows, Linux</BuildTargets>
       <ClipGUIControls>True</ClipGUIControls>
       <ColorDepth>TrueColor</ColorDepth>
       <CompressSpritesType>Deflate</CompressSpritesType>
@@ -91,7 +91,7 @@
       <UseOldCustomDialogOptionsAPI>False</UseOldCustomDialogOptionsAPI>
       <UseOldKeyboardHandling>False</UseOldKeyboardHandling>
       <UseOldVoiceClipNaming>False</UseOldVoiceClipNaming>
-      <Version>1.0.0.0</Version>
+      <Version>0.1.0.0</Version>
       <WalkInLookMode>False</WalkInLookMode>
       <WhenInterfaceDisabled>GreyOut</WhenInterfaceDisabled>
     </Settings>
