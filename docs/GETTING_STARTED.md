@@ -7,7 +7,38 @@
 | **AGS Editor 3.6.2** | Create and build the game | [adventuregamestudio.co.uk/create](https://www.adventuregamestudio.co.uk/create/) |
 | **ScummVM** | Test ScummVM-compatible builds | [scummvm.org/downloads](https://www.scummvm.org/downloads/) |
 
-AGS Editor is a Windows application. On Linux, run it via Wine or use a Windows VM. A Linux AGS runtime is included in `tools/Linux/` for testing compiled builds.
+AGS Editor is a Windows application. On Linux, use the project's install script (Wine + bundled editor).
+
+### Linux install
+
+```bash
+# Full install: AGS Editor + Wine + ScummVM (needs sudo)
+./scripts/install-ags-linux.sh
+
+# Editor/runtime only, no sudo (Wine must be installed separately)
+./scripts/install-ags-linux.sh --local
+```
+
+If Wine is not installed yet:
+
+```bash
+sudo apt install wine winetricks scummvm
+./scripts/install-ags-linux.sh
+```
+
+Launch the editor:
+
+```bash
+./scripts/run-ags-editor.sh game/Game.agf
+```
+
+Run a compiled build with the bundled Linux runtime:
+
+```bash
+./scripts/run-ags-game.sh
+```
+
+The installer downloads AGS 3.6.2 to `tools/ags-editor/` (gitignored). The first Wine run installs .NET 4.5 via winetricks — this can take several minutes.
 
 ## Open the project
 
