@@ -1,0 +1,16 @@
+# SCI Companion / build artifacts
+game/*.sco
+game/audiocache/
+game/stderr.txt
+game/stdout.txt
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.vscode/
+.idea/
+
+# Tools (install locally, not in repo)
+tools/
