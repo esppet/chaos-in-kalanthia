@@ -137,7 +137,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
-          allowUpdates: true
           name: Chaos in Kalanthia v${{ steps.version.outputs.version }}
           body: |
             ## Chaos in Kalanthia v${{ steps.version.outputs.version }}
