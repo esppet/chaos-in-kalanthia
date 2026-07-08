@@ -47,25 +47,21 @@ jobs:
           Expand-Archive -Path ags.zip -DestinationPath ags -Force
 
       - name: Build game
-        timeout-minutes: 60
-        shell: pwsh
+        timeout-minutes: 45
+        shell: cmd
         run: |
-          $game = "${{ github.workspace }}\game\Game.agf"
-          $editor = "${{ github.workspace }}\ags\AGSEditor.exe"
-          $proc = Start-Process -FilePath $editor -ArgumentList "/compile", $game -Wait -PassThru -RedirectStandardOutput "compile-out.txt" -RedirectStandardError "compile-err.txt"
-          Write-Host "=== AGS stdout ==="
-          Get-Content compile-out.txt -ErrorAction SilentlyContinue
-          Write-Host "=== AGS stderr ==="
-          Get-Content compile-err.txt -ErrorAction SilentlyContinue
-          Write-Host "Exit code: $($proc.ExitCode)"
-          if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
-          Write-Host "=== game/ directory ==="
-          Get-ChildItem -Recurse "${{ github.workspace }}\game" | Select-Object FullName
-          Write-Host "=== Compiled folders ==="
-          Get-ChildItem -Path "${{ github.workspace }}" -Recurse -Directory -Filter "Compiled" -ErrorAction SilentlyContinue | ForEach-Object {
-            Write-Host "Found: $($_.FullName)"
-            Get-ChildItem -Recurse $_.FullName
-          }
+          set "GAME=%GITHUB_WORKSPACE%\game\Game.agf"
+          set "EDITOR=%GITHUB_WORKSPACE%\ags\AGSEditor.exe"
+          echo Building %GAME%
+          "%EDITOR%" /compile "%GAME%"
+          if errorlevel 1 exit /b 1
+          echo === Compiled output ===
+          if exist "%GITHUB_WORKSPACE%\game\Compiled" (
+            dir /s "%GITHUB_WORKSPACE%\game\Compiled"
+          ) else (
+            echo No Compiled folder found under game\
+            exit /b 1
+          )
 
       - name: Locate build output
         id: paths
@@ -138,10 +134,9 @@ jobs:
           Compress-Archive -Path game -DestinationPath "dist/chaos-in-kalanthia-${version}-source.zip" -Force
 
       - name: Create GitHub Release
-        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
           allowUpdates: true
           name: Chaos in Kalanthia v${{ steps.version.outputs.version }}
           body: |
