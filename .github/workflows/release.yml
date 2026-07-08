@@ -36,13 +36,13 @@ jobs:
         id: ags-cache
         with:
           path: ags
-          key: ags-editor-3.6.1.14
+          key: ags-editor-3.6.3.10
 
       - name: Download AGS Editor
         if: steps.ags-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          $url = "https://github.com/adventuregamestudio/ags/releases/download/v3.6.1.14/AGS-3.6.1.14-Beta15.zip"
+          $url = "https://github.com/adventuregamestudio/ags/releases/download/v3.6.3.10/AGS-3.6.3.10-Beta10.zip"
           Invoke-WebRequest -Uri $url -OutFile ags.zip
           Expand-Archive -Path ags.zip -DestinationPath ags -Force
 
@@ -103,6 +103,7 @@ jobs:
             Copy-Item "${{ github.workspace }}\ags\acwin.exe" "$out\chaos-in-kalanthia.exe"
           }
 
+          python "${{ github.workspace }}\scripts\patch-ags-scummvm.py" $out
           Compress-Archive -Path $out -DestinationPath "dist/chaos-in-kalanthia-${version}-windows.zip" -Force
 
       - name: Package Linux runtime bundle
@@ -125,6 +126,7 @@ jobs:
             Copy-Item -Recurse "${{ github.workspace }}\ags\Linux\lib64" $out\
           }
 
+          python "${{ github.workspace }}\scripts\patch-ags-scummvm.py" $out
           tar -czf "dist/chaos-in-kalanthia-${version}-linux.tar.gz" -C dist "chaos-in-kalanthia-${version}-linux"
 
       - name: Package source
@@ -156,7 +158,8 @@ jobs:
 
             Blade Runner universe point-and-click adventure (AGS / ScummVM compatible).
 
-            Built with **AGS 3.6.1.14** for compatibility with ScummVM 2.8+ (format version 3060114).
+            Release binaries are patched for **ScummVM 2.8+** compatibility (AGS data format 3060114).
+            Standalone builds use the AGS 3.6.3 runtime bundled in the download.
 
             ### Downloads
             - **Windows** — `chaos-in-kalanthia-*-windows.zip`
