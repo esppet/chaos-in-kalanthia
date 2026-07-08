@@ -5628,7 +5628,7 @@ See KeyboardMovement.txt for details.
                 <Description>Core game state, timer, and ending logic for Chaos in Kalanthia.</Description>
                 <Author />
                 <Version>1.0</Version>
-                <Key>2847193650</Key>
+                <Key>847193650</Key>
                 <IsHeader>True</IsHeader>
               </Script>
             </ScriptAndHeader_Header>
@@ -5639,7 +5639,7 @@ See KeyboardMovement.txt for details.
                 <Description>Core game state, timer, and ending logic for Chaos in Kalanthia.</Description>
                 <Author />
                 <Version>1.0</Version>
-                <Key>2847193650</Key>
+                <Key>847193650</Key>
                 <IsHeader>False</IsHeader>
               </Script>
             </ScriptAndHeader_Script>
