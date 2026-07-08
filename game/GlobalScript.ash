@@ -57,6 +57,7 @@ import int gAnnitaOnboard;
 import int gRobertOnboard;
 import int gRingGifted;
 import int gShipComponentsFound;
+import int gTractorDisabled;
 
 import void StartZeroCollapseTimer();
 import void StopZeroCollapseTimer();
