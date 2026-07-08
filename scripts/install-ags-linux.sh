@@ -14,7 +14,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-AGS_ZIP_URL="https://www.adventuregamestudio.co.uk/releases/finals/AGS-3.6.2P9/AGS-3.6.2.19-P9.zip"
+AGS_ZIP_URL="https://github.com/adventuregamestudio/ags/releases/download/v3.6.1.14/AGS-3.6.1.14-Beta15.zip"
 AGS_DIR="$ROOT/tools/ags-editor"
 LOCAL_ONLY=false
 
@@ -27,7 +27,7 @@ echo "    Project: $ROOT"
 echo
 
 # --- AGS Editor + runtime (no root) ---
-echo "==> [1/3] AGS Editor 3.6.2 + Linux runtime"
+echo "==> [1/3] AGS Editor 3.6.1.14 + Linux runtime (ScummVM-compatible)"
 mkdir -p "$ROOT/tools"
 TMP_ZIP="$(mktemp /tmp/ags-XXXXXX.zip)"
 trap 'rm -f "$TMP_ZIP"' EXIT
@@ -35,7 +35,7 @@ trap 'rm -f "$TMP_ZIP"' EXIT
 if [[ -x "$AGS_DIR/AGSEditor.exe" ]]; then
   echo "    AGS Editor already present at tools/ags-editor/"
 else
-  echo "    Downloading AGS 3.6.2..."
+  echo "    Downloading AGS 3.6.1.14..."
   curl -fsSL -o "$TMP_ZIP" "$AGS_ZIP_URL"
   echo "    Extracting..."
   rm -rf "$AGS_DIR"
