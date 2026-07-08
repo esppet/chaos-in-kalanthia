@@ -133,6 +133,19 @@ jobs:
           $version = "${{ steps.version.outputs.version }}"
           Compress-Archive -Path game -DestinationPath "dist/chaos-in-kalanthia-${version}-source.zip" -Force
 
+      - name: Remove stale draft releases for this tag
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}"
+          gh release list --repo "${{ github.repository }}" --limit 20 --json tagName,isDraft,databaseId \
+            --jq ".[] | select(.tagName == \"$TAG\" and .isDraft) | .databaseId" \
+            | while read -r id; do
+                echo "Deleting draft release $id"
+                gh api -X DELETE "repos/${{ github.repository }}/releases/$id"
+              done
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
