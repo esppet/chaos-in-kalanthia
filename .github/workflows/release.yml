@@ -36,18 +36,18 @@ jobs:
         id: ags-cache
         with:
           path: ags
-          key: ags-editor-3.6.2.19-p9
+          key: ags-editor-3.6.3.10
 
       - name: Download AGS Editor
         if: steps.ags-cache.outputs.cache-hit != 'true'
         shell: pwsh
         run: |
-          $url = "https://www.adventuregamestudio.co.uk/releases/finals/AGS-3.6.2P9/AGS-3.6.2.19-P9.zip"
+          $url = "https://github.com/adventuregamestudio/ags/releases/download/v3.6.3.10/AGS-3.6.3.10-Beta10.zip"
           Invoke-WebRequest -Uri $url -OutFile ags.zip
           Expand-Archive -Path ags.zip -DestinationPath ags -Force
 
       - name: Build game
-        timeout-minutes: 45
+        timeout-minutes: 30
         shell: cmd
         run: |
           set "GAME=%GITHUB_WORKSPACE%\game\Game.agf"
