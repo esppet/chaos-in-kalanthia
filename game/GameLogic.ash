@@ -49,19 +49,3 @@ enum GameEnding {
 };
 
 #endif
-
-import int gCurrentAct;
-import int gGameEnding;
-import int gRobertRescued;
-import int gAnnitaOnboard;
-import int gRobertOnboard;
-import int gRingGifted;
-import int gShipComponentsFound;
-
-import void StartZeroCollapseTimer();
-import void StopZeroCollapseTimer();
-import void OnZeroCollapseExpired();
-import bool HasAllShipComponents();
-import void CheckShipReady();
-import void PlayIntroSequence();
-import void TriggerEnding(GameEnding ending);
