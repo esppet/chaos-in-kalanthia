@@ -1,9 +1,8 @@
-// Main header script - this will be included into every script in
-// the game (local and global). Do not place functions here; rather,
-// place import definitions and #define names here to be used by all
-// scripts.
+// Main header script - included into every script in the game.
 
-// --- GameLogic constants (shared across all scripts) ---
+#ifndef CHAOS_GAME_DEFS
+#define CHAOS_GAME_DEFS
+
 #define ACT_KALANTHIA       1
 #define ACT_STAR_DESTROYER  2
 #define ACT_EARTH           3
@@ -48,6 +47,8 @@ enum GameEnding {
   eEndingGoodSurvivors,
   eEndingGoodRomance
 };
+
+#endif
 
 import int gCurrentAct;
 import int gGameEnding;
