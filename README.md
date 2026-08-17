@@ -29,7 +29,7 @@ Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on this machine. From
 
 Saves live in this browser (`localStorage`).
 
-The score is an MT-32 / Roland SC-55 style loop set (title, courtyard, command room) written for the colony's leftover-Sierra mood: slow pads, a lonely electric-piano figure, choir far off, and a colder pulse inside the bunker.
+The score is an MT-32 / Roland SC-55 loop set (title, courtyard, command). Current pass is dry and fast — kick on every beat, 16th-note string clock, no choir wash. Earlier versions live in `web/assets/music/archive/`.
 
 ## Current playable slice
 
