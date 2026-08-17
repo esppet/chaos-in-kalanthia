@@ -6,6 +6,7 @@ import {
   approachPoint,
 } from "./pathfind.js";
 import { Soundtrack } from "./music.js";
+import { CommandTerm } from "./terminal.js";
 
 export const W = 640;
 export const H = 360;
@@ -47,6 +48,7 @@ export class Adventure {
     this.onKeyUp = this.onKeyUp.bind(this);
     this.tick = this.tick.bind(this);
     this.music = new Soundtrack();
+    this.term = null;
     this.shake = null;
     this.emerge = null;
   }
@@ -57,6 +59,24 @@ export class Adventure {
 
   shakeProp(id, seconds) {
     this.shake = { id, t: seconds, dur: seconds };
+  }
+
+  openTerminal() {
+    this.term?.open();
+  }
+
+  onTerminalRead() {
+    if (this.flag("logRead")) return;
+    this.setFlag("logRead");
+    if (!this.has("dataslug")) this.give("dataslug");
+    this._logJustRead = true;
+  }
+
+  onTerminalClose() {
+    if (this._logJustRead) {
+      this._logJustRead = false;
+      this.say("A kid in a falling building. Of course.");
+    }
   }
 
   startEmerge() {
@@ -323,6 +343,7 @@ export class Adventure {
   }
 
   onPointer(ev) {
+    if (this.term?.isOpen) return;
     if (this.mode !== "play") return;
     if (this.fadeDir) return;
     if (!this.root.querySelector("#menu").hidden) return;
@@ -455,6 +476,7 @@ export class Adventure {
   }
 
   onKey(ev) {
+    if (this.term?.isOpen) return;
     if (ev.repeat && ev.key !== "ArrowUp" && ev.key !== "ArrowDown" && ev.key !== "ArrowLeft" && ev.key !== "ArrowRight" && ev.key !== "w" && ev.key !== "a" && ev.key !== "s" && ev.key !== "d") {
       return;
     }
@@ -604,6 +626,7 @@ export class Adventure {
     if (!this.root.querySelector("#menu").hidden) return;
     if (this.trapped()) return;
     if (this.emerge) return;
+    if (this.term?.isOpen) return;
     const room = this.room();
     if (!room) return;
 
@@ -951,6 +974,7 @@ export class Adventure {
   async start() {
     await this.loadImages();
     if (this.world.music) await this.music.load(this.world.music);
+    this.term = new CommandTerm(this.root, this);
     this.bind();
     this.refreshContinue();
     this.setVerb("walk");

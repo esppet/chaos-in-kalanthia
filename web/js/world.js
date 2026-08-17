@@ -231,12 +231,12 @@ export const world = {
             game.flag("logRead")
               ? "The terminal's still looping the last emergency broadcast."
               : "A cracked command terminal. Green static. It wants to talk.",
-          use: (game) => readLog(game),
+          use: (game) => game.openTerminal(),
           useItem: (game, item) => {
             if (item === "dataslug") game.say("That's where it came from. It has nothing new to add.");
             else game.say("The terminal wants a slug, not whatever this is.");
           },
-          talk: (game) => readLog(game),
+          talk: (game) => game.openTerminal(),
         },
         {
           id: "floor",
@@ -289,21 +289,6 @@ function forceDoor(game) {
     return;
   }
   game.say("Jammed. I need leverage — something long and unfriendly.");
-}
-
-function readLog(game) {
-  if (game.flag("logRead")) {
-    game.say("Same loop. Zero is falling. A woman named Annita. A boy named Robert. Three missing ship parts.");
-    return;
-  }
-  game.setFlag("logRead");
-  if (!game.has("dataslug")) game.give("dataslug");
-  game.say([
-    "EMERGENCY LOG — last intact packet.",
-    "Apartment Building Zero is collapsing. Civilian Annita reports her son Robert is still on the upper floors.",
-    "Command is gone. Anyone left: the hangar ship is missing a fuel cell, nav module, and life support.",
-    "A kid in a falling building. Of course.",
-  ]);
 }
 
 function tryTown(game) {
