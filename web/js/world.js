@@ -59,9 +59,23 @@ export const world = {
           id: "sky",
           name: "burning sky",
           rect: [0, 0, 470, 145],
-          look: "Meteor fire on the horizon. Nobody's coming. Nobody's left to come.",
+          look: "Meteor fire on the horizon. And that tower — Zero. That's where the kid is.",
           use: (game) => game.say("I can't punch a meteor. Already checked."),
           talk: "The sky doesn't answer. It just keeps falling.",
+        },
+        {
+          id: "zero",
+          name: "Apartment Building Zero",
+          rect: [148, 48, 130, 115],
+          approach: [220, 260],
+          look: (game) =>
+            game.flag("logRead")
+              ? "Zero. Top floors still standing. Robert's up there, and the clock is running."
+              : "A megacomplex on the horizon. Ugly. Huge. On fire. Someone's still in there.",
+          use: (game) => tryTown(game),
+          walk: (game) => tryTown(game),
+          take: (game) => game.say("I'd pocket the whole building if I could. Later."),
+          talk: "Too far to shout. I'll have to go there.",
         },
         {
           id: "road",
@@ -85,6 +99,7 @@ export const world = {
           visible: (game) => !game.has("crowbar"),
           look: "A crowbar jammed through a girder. That's leverage.",
           use: (game) => takeCrowbar(game),
+          take: (game) => takeCrowbar(game),
           talk: "If I ask nicely, it still won't unstick itself.",
         },
         {
@@ -97,6 +112,7 @@ export const world = {
               ? "Just scrap now. I already took the only useful thing."
               : "Collapsed gantry. Something straight and steel is wedged in the pile.",
           use: (game) => takeCrowbar(game),
+          take: (game) => takeCrowbar(game),
           talk: "The metal groans. That's the only conversation it's offering.",
         },
         {

@@ -19,7 +19,7 @@ Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on this machine. From
 | Control | Action |
 |---------|--------|
 | Click | Walk, or apply the current verb |
-| 1 / 2 / 3 / 4 | Walk / Look / Use / Talk |
+| 1 / 2 / 3 / 4 / 5 | Walk / Look / Use / Pick up / Talk |
 | I | Inventory |
 | Esc | Save / load / restart |
 | WASD or arrows | Walk |

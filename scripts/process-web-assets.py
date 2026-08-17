@@ -131,6 +131,12 @@ def draw_icon(kind: str) -> Image.Image:
         d.rounded_rectangle((10, 14, 24, 28), radius=4, fill=amber, outline=ink)
         for x in (10, 14, 18, 22):
             d.rectangle((x, 6, x + 3, 16), fill=amber, outline=ink)
+    elif kind == "pickup":
+        d.rounded_rectangle((4, 16, 16, 28), radius=3, fill=amber, outline=ink)
+        d.rectangle((7, 8, 10, 18), fill=amber, outline=ink)
+        d.rectangle((11, 6, 14, 18), fill=amber, outline=ink)
+        d.rectangle((15, 9, 18, 18), fill=amber, outline=ink)
+        d.ellipse((18, 12, 28, 22), fill=light, outline=ink)
     elif kind == "talk":
         d.rounded_rectangle((5, 6, 26, 20), radius=4, fill=light, outline=ink)
         d.polygon([(10, 19), (8, 27), (16, 19)], fill=light, outline=ink)
@@ -156,6 +162,8 @@ def draw_cursor(kind: str) -> Image.Image:
         d.ellipse((9, 8, 15, 16), fill=ink)
     elif kind == "use":
         d.polygon([(3, 3), (8, 21), (11, 14), (21, 17)], fill=amber, outline=ink)
+    elif kind == "pickup":
+        d.polygon([(3, 20), (8, 6), (12, 12), (20, 8)], fill=amber, outline=ink)
     elif kind == "talk":
         d.rounded_rectangle((2, 3, 18, 14), radius=3, fill=amber, outline=ink)
         d.polygon([(6, 13), (4, 21), (11, 13)], fill=amber, outline=ink)
@@ -200,7 +208,7 @@ def main() -> None:
         save(key_item(Image.open(SRC / "4.jpg")), OUT / "items" / "dataslug.png")
 
         print("UI")
-        for kind in ("walk", "look", "use", "talk", "inv"):
+        for kind in ("walk", "look", "use", "pickup", "talk", "inv"):
             save(draw_icon(kind), OUT / "ui" / f"icon-{kind}.png")
             save(draw_cursor(kind), OUT / "ui" / f"cursor-{kind}.png")
         save(draw_cursor("wait"), OUT / "ui" / "cursor-wait.png")

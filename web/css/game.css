@@ -107,16 +107,17 @@ body,
 
 #iconbar button {
   appearance: none;
-  font: 16px/1 VT323, monospace;
+  font: 15px/1 VT323, monospace;
   color: var(--paper);
   background: #1a120c;
   border: 1px solid #4a3420;
-  padding: 3px 7px 2px;
+  padding: 3px 5px 2px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
   image-rendering: pixelated;
+  white-space: nowrap;
 }
 
 #iconbar button img {

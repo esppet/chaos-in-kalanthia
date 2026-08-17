@@ -240,9 +240,13 @@ export class Adventure {
     } else if (this.activeItem) {
       text = `Use ${this.world.items[this.activeItem].name} on...`;
     } else if (name) {
-      const verbWord = { walk: "Walk to", look: "Look at", use: "Use", talk: "Talk to" }[
-        this.verb
-      ];
+      const verbWord = {
+        walk: "Walk to",
+        look: "Look at",
+        use: "Use",
+        pickup: "Pick up",
+        talk: "Talk to",
+      }[this.verb];
       text = `${verbWord} ${name}`;
     }
     el.textContent = text;
@@ -284,6 +288,7 @@ export class Adventure {
       this.verb = "use";
       this.activeItem = id;
       this.setVerb("use");
+      this.toggleInventory(false);
     }
     this.renderInventory();
     this.updateStatus();
@@ -305,6 +310,14 @@ export class Adventure {
     }
     if (this.verb === "talk") {
       this.doTalk(hs);
+      return;
+    }
+    if (this.verb === "pickup") {
+      if (!hs) {
+        this.say("Nothing to pick up.");
+        return;
+      }
+      this.walkThen(() => this.doTake(hs), hs);
       return;
     }
     if (this.verb === "use" || this.activeItem) {
@@ -361,6 +374,14 @@ export class Adventure {
     this.say("I can't use that.");
   }
 
+  doTake(hs) {
+    if (hs.take) {
+      hs.take(this);
+      return;
+    }
+    this.say("I can't pick that up.");
+  }
+
   walkThen(action, hs) {
     const room = this.room();
     const dest = approachPoint(hs, room.walkable);
@@ -403,7 +424,8 @@ export class Adventure {
     if (ev.key === "1") this.setVerb("walk");
     if (ev.key === "2") this.setVerb("look");
     if (ev.key === "3") this.setVerb("use");
-    if (ev.key === "4") this.setVerb("talk");
+    if (ev.key === "4") this.setVerb("pickup");
+    if (ev.key === "5") this.setVerb("talk");
     if (ev.key === "i" || ev.key === "I") this.toggleInventory();
     if (ev.key === "m" || ev.key === "M") {
       this.music.toggle();

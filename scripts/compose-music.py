@@ -23,9 +23,11 @@ SR = 22050
 
 # GM programs that sit close to classic Sierra MT-32 / SC-55 cues.
 EP = 4
+SLAP_BASS = 36
 SYNTH_BASS = 38
 STRINGS = 48
 CHOIR = 52
+SYNTH_BRASS = 62
 WARM_PAD = 89
 HALO = 94
 ATMOS = 99
@@ -35,10 +37,12 @@ CRYSTAL = 98
 
 # Drums (channel 9)
 KICK = 36
+SNARE = 38
 RIDE = 51
 TOM_LO = 41
 TOM_MID = 47
 CHH = 42
+OHH = 46
 
 # C# minor world
 Gs1, A1, B1 = 32, 33, 35
@@ -89,143 +93,129 @@ class Seq:
                 self.cc(0, ch, 10, 64)
 
 
+def groove(s: Seq, bars: int, kick_pat="x.x.", snare_pat="..x.", hat="eighth") -> None:
+    """A cool, ticking kit — urgency without turning into a rock song."""
+    for bar in range(bars):
+        base = bar * 4
+        for i, hit in enumerate(kick_pat):
+            if hit == "x":
+                s.note(base + i, 0.25, 9, KICK, 72 if i == 0 else 58)
+        for i, hit in enumerate(snare_pat):
+            if hit == "x":
+                s.note(base + i, 0.2, 9, SNARE, 64)
+        if hat == "eighth":
+            for i in range(8):
+                s.note(base + i * 0.5, 0.12, 9, CHH, 40 if i % 2 == 0 else 28)
+        elif hat == "sixteenth":
+            for i in range(16):
+                s.note(base + i * 0.25, 0.08, 9, CHH, 36 if i % 4 == 0 else 22)
+
+
 def title_cue() -> tuple[Seq, int]:
-    """Off-World — lonely EP motif over a slow i–VI–III–VII pad."""
-    bpm = 72
+    """Off-World — swaggering action-hero theme. Same motif, more spine."""
+    bpm = 100
     s = Seq(bpm)
     bars = 16
     beats = bars * 4
     s.setup(
         {
             0: EP,
-            1: SYNTH_BASS,
-            2: WARM_PAD,
-            3: CHOIR,
+            1: SLAP_BASS,
+            2: SYNTH_BRASS,
+            3: WARM_PAD,
             4: ATMOS,
             5: SAW_LEAD,
             6: STRINGS,
         },
-        {0: 70, 2: 54, 3: 80, 4: 40, 5: 76, 6: 50},
+        {0: 70, 1: 64, 2: 48, 3: 80, 4: 36, 5: 78, 6: 52},
     )
-    s.cc(0, 9, 7, 72)
+    s.cc(0, 9, 7, 92)
 
-    pad = [
-        (0, [Cs3, Gs3, Cs4, E4]),
-        (8, [A2, E3, A3, Cs4]),
-        (16, [E2, B2, E3, Gs3]),
-        (24, [B2, Fs3, B3, Ds4]),
-        (32, [Cs3, Gs3, Cs4, E4]),
-        (40, [A2, E3, A3, Cs4]),
-        (48, [Fs2, Cs3, A3, Cs4]),
-        (56, [Cs3, Gs3, Cs4, E4]),
+    # Driving slap-bass ostinato.
+    roots = ([Cs2] * 8 + [A1] * 4 + [E2] * 4 + [B1] * 4 + [Cs2] * 4 +
+             [A1] * 4 + [Fs2] * 4 + [Gs2] * 2 + [Cs2] * 2)
+    # 16 bars * 4 beats of eighths = 64 notes if we do every beat... use 2 per bar.
+    bass_line = []
+    prog = [Cs2, Cs2, A1, A1, E2, E2, B1, B1, Cs2, Cs2, A1, A1, Fs2, Fs2, Gs2, Cs2]
+    for bar, root in enumerate(prog):
+        b = bar * 4
+        bass_line += [(b, root), (b + 1, root), (b + 2, root + 7), (b + 3, root)]
+    for start, pitch in bass_line:
+        s.note(start, 0.42, 1, pitch, 74 if start % 4 == 0 else 58)
+
+    pads = [
+        (0, [Cs3, Gs3, E4], 7.6),
+        (8, [A2, E3, Cs4], 7.6),
+        (16, [E3, B3, Gs4], 7.6),
+        (24, [B2, Fs3, Ds4], 7.6),
+        (32, [Cs3, Gs3, E4], 7.6),
+        (40, [A2, E3, Cs4], 7.6),
+        (48, [Fs2, Cs3, A3], 7.6),
+        (56, [Cs3, Gs3, E4], 7.6),
     ]
-    for start, notes in pad:
-        s.chord(start, 7.6, 2, notes, 48)
-        s.chord(start + 0.05, 7.4, 6, notes[1:], 28)
+    for start, notes, dur in pads:
+        s.chord(start, dur, 3, notes, 40)
+        s.chord(start + 0.05, 3.5, 2, [notes[-1], notes[-1] + 3], 34)
 
-    choir = [
-        (0, [Gs4, Cs5, E5], 7.5),
-        (16, [Gs4, B4, E5], 7.5),
-        (32, [E4, Gs4, Cs5], 7.5),
-        (48, [Cs4, Gs4, Cs5], 7.5),
-    ]
-    for start, notes, dur in choir:
-        s.chord(start, dur, 3, notes, 26)
+    s.note(0, 15, 4, Cs2, 34)
+    s.note(32, 15, 4, Gs2, 30)
 
-    s.note(0, 31, 4, Cs2, 40)
-    s.note(32, 31, 4, Gs2, 36)
-
-    bass = [
-        (0, Cs2, 3.5),
-        (4, Cs2, 1.5),
-        (6, Gs2, 1.6),
-        (8, A1, 3.5),
-        (12, A1, 1.5),
-        (14, E2, 1.6),
-        (16, E2, 3.5),
-        (20, E2, 1.5),
-        (22, B2, 1.6),
-        (24, B1, 3.5),
-        (28, B1, 1.5),
-        (30, Fs2, 1.6),
-        (32, Cs2, 3.5),
-        (36, Cs2, 3.5),
-        (40, A1, 3.5),
-        (44, A1, 3.5),
-        (48, Fs2, 3.5),
-        (52, Fs2, 1.5),
-        (54, Cs2, 1.6),
-        (56, Cs2, 7.5),
-    ]
-    for start, pitch, dur in bass:
-        s.note(start, dur, 1, pitch, 62)
-
-    # Electric-piano motif — the "Kalanthia" figure.
+    # Hero motif — the old figure, punched shorter.
     ep = [
-        (0, 1.0, Cs4, 70),
-        (1, 1.0, E4, 66),
-        (2, 2.0, Gs4, 72),
-        (4, 1.0, Fs4, 64),
-        (5, 1.0, E4, 60),
-        (6, 0.5, Ds4, 58),
-        (6.5, 1.5, Cs4, 62),
-        (8, 2.0, A3, 60),
-        (10, 2.0, Gs3, 58),
-        (16, 1.0, Cs4, 68),
-        (17, 0.5, E4, 62),
-        (17.5, 0.5, Fs4, 62),
-        (18, 2.0, Gs4, 70),
-        (20, 1.0, A4, 64),
-        (21, 1.0, Gs4, 62),
-        (22, 2.0, E4, 60),
-        (24, 1.0, Ds4, 58),
-        (25, 1.0, Cs4, 60),
-        (26, 2.0, B3, 56),
-        (32, 1.0, E4, 66),
-        (33, 1.0, Gs4, 68),
-        (34, 2.0, Cs5, 64),
-        (36, 1.0, B4, 60),
-        (37, 1.0, A4, 58),
-        (38, 2.0, Gs4, 60),
-        (40, 2.0, A4, 58),
-        (42, 2.0, E4, 56),
-        (48, 1.0, Fs4, 60),
-        (49, 1.0, E4, 58),
-        (50, 2.0, Cs4, 62),
-        (56, 4.0, Cs4, 54),
-        (60, 3.5, Gs3, 48),
+        (0, 0.5, Cs4, 78),
+        (0.5, 0.5, E4, 74),
+        (1, 1.0, Gs4, 80),
+        (2, 0.5, Fs4, 72),
+        (2.5, 0.5, E4, 70),
+        (3, 1.0, Cs4, 74),
+        (8, 0.5, Cs4, 76),
+        (8.5, 0.5, E4, 72),
+        (9, 0.5, Fs4, 72),
+        (9.5, 0.5, Gs4, 78),
+        (10, 1.0, A4, 70),
+        (11, 1.0, Gs4, 72),
+        (16, 0.5, E4, 74),
+        (16.5, 0.5, Gs4, 76),
+        (17, 1.0, Cs5, 78),
+        (18, 2.0, B4, 70),
+        (24, 0.5, A4, 68),
+        (24.5, 0.5, Gs4, 66),
+        (25, 1.0, E4, 70),
+        (26, 2.0, Cs4, 68),
+        (32, 0.5, Gs4, 76),
+        (33, 0.5, Cs5, 78),
+        (34, 1.0, E5, 72),
+        (36, 2.0, Ds5, 66),
+        (40, 1.0, Cs5, 70),
+        (41, 1.0, B4, 66),
+        (42, 2.0, Gs4, 68),
+        (48, 0.5, Fs4, 70),
+        (48.5, 0.5, E4, 68),
+        (49, 1.0, Cs4, 72),
+        (56, 3.5, Cs4, 64),
     ]
     for start, dur, pitch, vel in ep:
         s.note(start, dur, 0, pitch, vel)
 
     lead = [
-        (32, 2.0, E5, 46),
-        (34, 1.0, Ds5, 42),
-        (35, 1.0, Cs5, 44),
-        (36, 2.0, B4, 40),
-        (38, 2.0, Gs4, 42),
-        (40, 3.0, A4, 40),
-        (43, 1.0, Gs4, 38),
-        (44, 4.0, E4, 36),
-        (48, 2.0, Cs5, 40),
-        (50, 2.0, Gs4, 38),
-        (56, 7.0, Cs4, 32),
+        (4, 1.5, Gs4, 52),
+        (12, 2.0, E5, 50),
+        (20, 1.5, Cs5, 54),
+        (28, 2.0, B4, 48),
+        (36, 1.0, A4, 50),
+        (44, 2.0, Gs4, 52),
+        (52, 3.0, Cs5, 48),
     ]
     for start, dur, pitch, vel in lead:
         s.note(start, dur, 5, pitch, vel)
 
-    for bar in range(0, bars, 2):
-        s.note(bar * 4, 0.4, 9, RIDE, 38)
-    for bar in (0, 8):
-        s.note(bar * 4, 0.6, 9, KICK, 50)
-        s.note(bar * 4 + 2.0, 0.4, 9, TOM_LO, 36)
-
+    groove(s, bars, "x.x.", "..x.", "eighth")
     return s, beats
 
 
 def courtyard_cue() -> tuple[Seq, int]:
-    """Ash Sky — emptier, wind-scoured, meteor afterglow."""
-    bpm = 64
+    """Ash Sky — clock is running. Meteor still falling. Get to Zero."""
+    bpm = 116
     s = Seq(bpm)
     bars = 16
     beats = bars * 4
@@ -234,100 +224,107 @@ def courtyard_cue() -> tuple[Seq, int]:
             0: EP,
             1: SYNTH_BASS,
             2: HALO,
-            3: CHOIR,
+            3: SYNTH_BRASS,
             4: ATMOS,
             5: SQUARE,
             6: WARM_PAD,
         },
-        {0: 62, 2: 48, 3: 86, 4: 30, 5: 78, 6: 58},
+        {0: 66, 2: 46, 3: 82, 4: 32, 5: 74, 6: 58},
     )
-    s.cc(0, 9, 7, 60)
+    s.cc(0, 9, 7, 96)
 
-    pad = [
-        (0, [Cs3, Gs3, E4], 15.5),
-        (16, [A2, E3, Cs4], 15.5),
-        (32, [Fs2, Cs3, A3], 15.5),
-        (48, [Cs3, Gs3, Ds4], 15.5),
+    # Relentless eighth-note bass — a countdown.
+    roots = []
+    for bar in range(bars):
+        if bar % 8 < 4:
+            r = Cs2
+        elif bar % 8 < 6:
+            r = A1
+        else:
+            r = Gs2 if bar % 8 == 6 else Fs2
+        roots.append(r)
+    for bar, root in enumerate(roots):
+        for i in range(8):
+            pitch = root if i != 4 else root + 7
+            s.note(bar * 4 + i * 0.5, 0.38, 1, pitch, 70 if i == 0 else 50)
+
+    pads = [
+        (0, [Cs3, Gs3, E4], 15.4),
+        (16, [A2, E3, Cs4], 15.4),
+        (32, [Gs2, Ds3, B3], 7.6),
+        (40, [Fs2, Cs3, A3], 7.6),
+        (48, [Cs3, Gs3, E4], 15.4),
     ]
-    for start, notes, dur in pad:
-        s.chord(start, dur, 2, notes, 42)
-        s.chord(start + 0.2, dur - 0.3, 6, [n - 12 for n in notes[:2]] + notes, 30)
+    for start, notes, dur in pads:
+        s.chord(start, dur, 2, notes, 36)
+        s.chord(start, min(dur, 4), 3, [notes[-1]], 30)
 
-    s.note(0, 30, 4, Cs2, 50)
-    s.note(32, 30, 4, Gs1, 44)
-    s.chord(8, 14, 3, [Gs4, Cs5], 20)
-    s.chord(40, 14, 3, [E4, B4], 18)
+    s.note(0, 31, 4, Cs2, 40)
+    s.note(32, 31, 4, Gs1, 36)
 
-    bass = [
-        (0, Cs2, 7.5),
-        (8, Cs2, 7.5),
-        (16, A1, 7.5),
-        (24, A1, 7.5),
-        (32, Fs2, 7.5),
-        (40, Fs2, 3.5),
-        (44, Cs2, 3.5),
-        (48, Gs2, 7.5),
-        (56, Cs2, 7.5),
-    ]
-    for start, pitch, dur in bass:
-        s.note(start, dur, 1, pitch, 50)
-
-    # Distant fragments, like a memory of the title motif.
+    # Staccato motif fragments — no time to linger.
     ep = [
-        (4, 2.0, Gs4, 44),
-        (8, 3.0, E4, 40),
-        (16, 1.0, Cs4, 48),
-        (18, 2.0, E4, 42),
-        (24, 4.0, B3, 38),
-        (32, 2.0, A3, 40),
-        (36, 2.0, Cs4, 42),
-        (40, 3.0, Gs3, 36),
-        (48, 2.0, E4, 40),
-        (52, 4.0, Cs4, 38),
+        (0, 0.4, Gs4, 62),
+        (2, 0.4, Cs5, 64),
+        (4, 0.8, E4, 58),
+        (8, 0.4, A4, 60),
+        (10, 0.4, Gs4, 58),
+        (16, 0.4, Cs4, 64),
+        (16.5, 0.4, E4, 60),
+        (17, 0.8, Gs4, 66),
+        (24, 1.5, B3, 54),
+        (32, 0.4, Gs4, 62),
+        (34, 0.4, Fs4, 58),
+        (36, 0.8, E4, 60),
+        (40, 1.5, Cs4, 58),
+        (48, 0.4, E4, 62),
+        (48.5, 0.4, Gs4, 64),
+        (49, 1.0, Cs5, 66),
+        (56, 2.5, Cs4, 56),
     ]
     for start, dur, pitch, vel in ep:
         s.note(start, dur, 0, pitch, vel)
 
     lead = [
-        (20, 4.0, Gs4, 28),
-        (36, 3.0, Cs5, 26),
-        (50, 6.0, E4, 24),
+        (8, 1.2, Cs5, 44),
+        (20, 1.5, E5, 42),
+        (28, 1.2, B4, 40),
+        (44, 2.0, Gs4, 44),
+        (60, 2.5, Cs5, 40),
     ]
     for start, dur, pitch, vel in lead:
         s.note(start, dur, 5, pitch, vel)
 
-    for bar in (0, 4, 8, 12):
-        s.note(bar * 4, 0.8, 9, TOM_LO, 42)
-    s.note(30, 0.5, 9, TOM_MID, 30)
-    s.note(62, 0.8, 9, TOM_LO, 34)
-
+    groove(s, bars, "x.x.", "..x.", "sixteenth")
     return s, beats
 
 
 def command_cue() -> tuple[Seq, int]:
-    """Dead Console — colder, leftover military clock."""
-    bpm = 80
+    """Dead Console — cooler heist pulse. Steal the log, get out."""
+    bpm = 108
     s = Seq(bpm)
     bars = 16
     beats = bars * 4
     s.setup(
         {
             0: EP,
-            1: SYNTH_BASS,
+            1: SLAP_BASS,
             2: CRYSTAL,
-            3: CHOIR,
+            3: SYNTH_BRASS,
             4: ATMOS,
             5: SAW_LEAD,
             6: STRINGS,
         },
-        {0: 68, 2: 42, 3: 84, 4: 36, 5: 74, 6: 56},
+        {0: 68, 2: 40, 3: 84, 4: 34, 5: 76, 6: 56},
     )
-    s.cc(0, 9, 7, 68)
+    s.cc(0, 9, 7, 90)
 
-    # Pulse bass — a dying generator.
-    for beat in range(0, beats, 2):
-        root = Cs2 if (beat // 8) % 4 in (0, 3) else (A1 if (beat // 8) % 4 == 1 else Fs2)
-        s.note(beat, 0.7, 1, root, 58 if beat % 8 == 0 else 44)
+    prog = [Cs2, Cs2, A1, A1, Fs2, Fs2, Gs2, Cs2,
+            Cs2, Cs2, A1, A1, Fs2, Gs2, Cs2, Cs2]
+    for bar, root in enumerate(prog):
+        b = bar * 4
+        for i, off in enumerate((0, 0.75, 1.5, 2.0, 2.75, 3.5)):
+            s.note(b + off, 0.35, 1, root if i != 2 else root + 12, 72 if i == 0 else 52)
 
     crystals = [
         (0, [Cs4, Gs4], 7.5),
@@ -340,50 +337,47 @@ def command_cue() -> tuple[Seq, int]:
         (56, [Cs4, Gs4], 7.5),
     ]
     for start, notes, dur in crystals:
-        s.chord(start, dur, 2, notes, 36)
-        s.chord(start, dur, 6, [n - 12 for n in notes], 32)
+        s.chord(start, dur, 2, notes, 38)
+        s.chord(start, 2.0, 3, [notes[-1]], 32)
 
-    s.note(0, 31, 4, Cs3, 34)
-    s.note(32, 31, 4, Gs2, 32)
-    s.chord(16, 14, 3, [Gs4, Cs5], 16)
-    s.chord(48, 14, 3, [E4, Gs4], 16)
+    s.note(0, 31, 4, Cs3, 32)
+    s.note(32, 31, 4, Gs2, 30)
 
     ep = [
-        (0, 0.5, Gs4, 50),
-        (2, 0.5, Cs5, 46),
-        (4, 1.0, E4, 44),
-        (8, 0.5, A4, 48),
-        (10, 0.5, E4, 42),
-        (16, 0.5, Fs4, 46),
-        (18, 0.5, Cs4, 42),
-        (24, 2.0, Gs4, 44),
-        (32, 0.5, Cs5, 48),
-        (33, 0.5, B4, 40),
-        (34, 1.0, Gs4, 44),
-        (40, 2.0, A4, 40),
-        (48, 0.5, Fs4, 42),
-        (50, 0.5, E4, 40),
-        (56, 3.0, Cs4, 44),
+        (0, 0.35, Gs4, 64),
+        (1, 0.35, Cs5, 62),
+        (2, 0.7, E4, 58),
+        (4, 0.35, A4, 60),
+        (6, 0.7, Gs4, 58),
+        (8, 0.35, Fs4, 60),
+        (10, 0.35, E4, 56),
+        (16, 0.35, Cs5, 64),
+        (17, 0.35, B4, 56),
+        (18, 1.0, Gs4, 60),
+        (24, 1.5, E4, 54),
+        (32, 0.35, Gs4, 66),
+        (32.75, 0.35, Cs5, 64),
+        (34, 0.7, E5, 58),
+        (40, 1.2, A4, 56),
+        (48, 0.35, Fs4, 58),
+        (50, 0.35, E4, 56),
+        (56, 2.5, Cs4, 58),
     ]
     for start, dur, pitch, vel in ep:
         s.note(start, dur, 0, pitch, vel)
 
     lead = [
-        (8, 2.0, Cs5, 34),
-        (24, 3.0, Gs4, 30),
-        (40, 2.0, E5, 28),
-        (56, 4.0, Cs5, 26),
+        (12, 1.4, Cs5, 46),
+        (28, 1.6, Gs4, 42),
+        (44, 1.4, E5, 44),
+        (60, 2.2, Cs5, 42),
     ]
     for start, dur, pitch, vel in lead:
         s.note(start, dur, 5, pitch, vel)
 
-    for beat in range(0, beats, 4):
-        s.note(beat, 0.15, 9, CHH, 28)
-    for bar in range(0, bars, 2):
-        s.note(bar * 4, 0.3, 9, KICK, 46)
-    s.note(28, 0.3, 9, TOM_MID, 32)
-    s.note(60, 0.4, 9, TOM_LO, 36)
-
+    groove(s, bars, "x.x.", "..x.", "eighth")
+    s.note(14, 0.2, 9, OHH, 40)
+    s.note(46, 0.2, 9, OHH, 38)
     return s, beats
 
 
@@ -489,6 +483,22 @@ def main() -> None:
         write_wav(wav, audio)
         encode_ogg(wav, ogg)
         wav.unlink()
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        norm = OUT / f"{name}-norm.ogg"
+        subprocess.run(
+            [
+                ffmpeg, "-y", "-i", str(ogg),
+                "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,aresample=22050",
+                "-c:a", "libvorbis", "-q:a", "4", str(norm),
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        norm.replace(ogg)
+        archive = OUT / "archive" / "v2-urgent"
+        archive.mkdir(parents=True, exist_ok=True)
+        (archive / ogg.name).write_bytes(ogg.read_bytes())
         seconds = len(audio) / 2 / SR
         print(f"  {ogg.relative_to(ROOT)}  {seconds:.1f}s  {ogg.stat().st_size // 1024}KB")
     print("done")
