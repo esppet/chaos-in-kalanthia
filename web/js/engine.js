@@ -47,6 +47,15 @@ export class Adventure {
     this.onKeyUp = this.onKeyUp.bind(this);
     this.tick = this.tick.bind(this);
     this.music = new Soundtrack();
+    this.shake = null;
+  }
+
+  trapped() {
+    return this.roomId === "base-exterior" && !this.flag("outOfFridge");
+  }
+
+  shakeProp(id, seconds) {
+    this.shake = { id, t: seconds, dur: seconds };
   }
 
   room() {
@@ -172,7 +181,7 @@ export class Adventure {
       this.root.querySelector("#endcard").hidden = true;
       this.mode = "title";
       this.root.querySelector("#title").hidden = false;
-      this.music.play("title");
+      this.music.stop();
       this.refreshContinue();
     });
     this.fit();
@@ -304,6 +313,24 @@ export class Adventure {
       return;
     }
     const hs = this.hotspotAt(x, y);
+    if (this.trapped()) {
+      if (hs?.id === "fridge") {
+        if (this.verb === "look" && !this.speechVisible) {
+          this.doLook(hs);
+        } else {
+          this.speech = [];
+          this.speechVisible = null;
+          this.root.querySelector("#speech").hidden = true;
+          this.busy = false;
+          if (hs.use) hs.use(this);
+        }
+      } else if (this.speechVisible) {
+        this.advanceSpeech();
+      } else {
+        this.say("The door won't give. I need to hit it from the inside.");
+      }
+      return;
+    }
     if (this.verb === "look") {
       this.doLook(hs);
       return;
@@ -555,6 +582,7 @@ export class Adventure {
   stepPlayer(dt) {
     if (this.busy || this.speechVisible) return;
     if (!this.root.querySelector("#menu").hidden) return;
+    if (this.trapped()) return;
     const room = this.room();
     if (!room) return;
 
@@ -626,7 +654,13 @@ export class Adventure {
         if (hs.visible && !hs.visible(this)) continue;
         const im = this.img(hs.image);
         if (!im || !hs.rect) continue;
-        ctx.drawImage(im, hs.rect[0], hs.rect[1], hs.rect[2], hs.rect[3]);
+        let ox = 0, oy = 0;
+        if (this.shake && this.shake.id === hs.id && this.shake.t > 0) {
+          const k = this.shake.t / this.shake.dur;
+          ox = Math.sin(this.shake.t * 70) * 3 * k;
+          oy = Math.cos(this.shake.t * 90) * 1.5 * k;
+        }
+        ctx.drawImage(im, hs.rect[0] + ox, hs.rect[1] + oy, hs.rect[2], hs.rect[3]);
       }
       this.drawPlayer(ctx);
       if (this.debug) this.drawDebug(ctx, room);
@@ -638,6 +672,7 @@ export class Adventure {
   }
 
   drawPlayer(ctx) {
+    if (this.trapped()) return;
     const walking = this.moving && !this.speechVisible;
     const useWalk = walking && Math.floor(this.walkPhase * 6) % 2 === 1;
     const src = `assets/sprites/russell-${this.player.dir}${useWalk ? "-walk" : ""}.png`;
@@ -696,6 +731,12 @@ export class Adventure {
     this.player.path = [];
     this.inventory = [...data.inventory];
     this.flags = { ...data.flags };
+    if (
+      !this.flags.outOfFridge &&
+      (this.flags.wokeInWreckage || this.inventory.length || this.flags.doorForced || this.flags.logRead)
+    ) {
+      this.flags.outOfFridge = true;
+    }
     this.pending = null;
     this.speech = [];
     this.speechVisible = null;
@@ -816,6 +857,10 @@ export class Adventure {
     const dt = Math.min(0.05, (now - this.last) / 1000 || 0.016);
     this.last = now;
     if (this.mode === "play") {
+      if (this.shake) {
+        this.shake.t -= dt;
+        if (this.shake.t <= 0) this.shake = null;
+      }
       this.stepPlayer(dt);
       if (this.fadeDir !== 0) {
         this.fade += this.fadeDir * dt * 2.6;
@@ -853,7 +898,6 @@ export class Adventure {
     this.syncMusicButtons();
     this.root.querySelector("#boot").hidden = true;
     this.root.querySelector("#title").hidden = false;
-    this.music.play("title");
     requestAnimationFrame(this.tick);
   }
 }

@@ -10,8 +10,8 @@ export const world = {
   intro: [
     "Kalanthia. Off-world colony.",
     "A meteor strike has shattered the surface.",
-    "Replicant soldier Russell wakes in the wreckage of the military base.",
-    "His only way off this rock is a ship — if it still flies.",
+    "Replicant soldier Russell rode out the strike in an old refrigerator.",
+    "The door is jammed. Someone has to let him out.",
   ],
   items: {
     crowbar: {
@@ -30,7 +30,7 @@ export const world = {
       name: "Military Base — Courtyard",
       bg: "assets/rooms/base-exterior.png",
       music: "courtyard",
-      start: { x: 360, y: 318, dir: "right" },
+      start: { x: 176, y: 322, dir: "right" },
       scaleTop: [230, 0.52],
       scaleBot: [350, 0.78],
       walkable: [
@@ -46,7 +46,7 @@ export const world = {
         [154, 318],
       ],
       onEnter(game) {
-        if (!game.flag("wokeInWreckage")) {
+        if (game.flag("outOfFridge") && !game.flag("wokeInWreckage")) {
           game.setFlag("wokeInWreckage");
           game.say([
             "The sky's still falling. I need a way out.",
@@ -94,7 +94,7 @@ export const world = {
           id: "crowbar-prop",
           name: "crowbar",
           image: "assets/items/crowbar.png",
-          rect: [68, 248, 72, 54],
+          rect: [96, 272, 56, 40],
           approach: [176, 318],
           visible: (game) => !game.has("crowbar"),
           look: "A crowbar jammed through a girder. That's leverage.",
@@ -114,6 +114,21 @@ export const world = {
           use: (game) => takeCrowbar(game),
           take: (game) => takeCrowbar(game),
           talk: "The metal groans. That's the only conversation it's offering.",
+        },
+        {
+          id: "fridge",
+          name: "refrigerator door",
+          image: "assets/items/fridge.png",
+          rect: [18, 196, 74, 118],
+          approach: [176, 322],
+          look: (game) =>
+            game.flag("outOfFridge")
+              ? "My bunker. One star. Would not ride out a second strike."
+              : "An old icebox. I dove in when the sky fell. The door's jammed from the inside.",
+          use: (game) => knockFridge(game),
+          take: (game) => knockFridge(game),
+          talk: (game) => knockFridge(game),
+          walk: (game) => knockFridge(game),
         },
         {
           id: "wreckage-mid",
@@ -231,6 +246,32 @@ export const world = {
     },
   },
 };
+
+function knockFridge(game) {
+  if (game.flag("outOfFridge")) {
+    game.say("I'm already out. The icebox can keep the next meteor.");
+    return;
+  }
+  const n = (game.flags.fridgeHits || 0) + 1;
+  game.flags.fridgeHits = n;
+  game.shakeProp("fridge", 0.22);
+  if (n === 1) game.say("The door shudders. Come on.");
+  else if (n === 2) game.say("The seal's warped. Again.");
+  else if (n === 3) game.say("One more.");
+  else {
+    game.setFlag("outOfFridge");
+    game.player.x = 176;
+    game.player.y = 322;
+    game.player.dir = "right";
+    game.setFlag("wokeInWreckage");
+    game.say([
+      "The door gives. I climb out of a fridge.",
+      "Meteor insurance. One star.",
+      "The sky's still falling. I need a way out.",
+    ]);
+  }
+  game.autosave();
+}
 
 function takeCrowbar(game) {
   if (game.has("crowbar")) {

@@ -94,10 +94,18 @@ export class Soundtrack {
   }
 
   unlock() {
-    // Browsers block audio until a gesture; poke the current (or title) clip.
-    const clip = this.clips.get(this.current || "title");
+    const clip = this.current && this.clips.get(this.current);
     if (!clip || this.muted) return;
     const p = clip.play();
     if (p && p.catch) p.catch(() => {});
+  }
+
+  stop() {
+    this.current = null;
+    for (const audio of this.clips.values()) {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.volume = 0;
+    }
   }
 }

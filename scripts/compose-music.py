@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SF2 = Path("/usr/share/scummvm/Roland_SC-55.sf2")
 OUT = ROOT / "web" / "assets" / "music"
 SR = 22050
-ARCHIVE = "v3-urgency"
+ARCHIVE = "v4-no-brass"
 
 # GM programs — dry, rhythmic, no choir wash.
 EP = 4
@@ -117,30 +117,28 @@ def title_cue() -> tuple[Seq, int]:
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: SYNTH_BRASS, 1: SLAP_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
-        {0: 54, 2: 80, 5: 72, 6: 44},
+        {0: MUTED_GTR, 1: SLAP_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
+        {0: 60, 2: 80, 5: 72, 6: 44},
     )
     s.cc(0, 9, 7, 100)
     motor_bass(s, bars, [Cs2, Cs2, A1, Gs2] * 4)
     clock_strings(s, bars)
 
-    # Brass / lead unison riff — short, punched.
+    # Tight guitar/lead riff — no brass fanfare.
     riff = [
         (0.0, 0.45, Cs4), (0.5, 0.45, E4), (1.0, 0.9, Gs4),
         (2.0, 0.45, Fs4), (2.5, 0.45, E4), (3.0, 0.9, Cs4),
     ]
     for bar in (0, 2, 8, 10):
         for off, dur, pitch in riff:
-            vel = 78 if off == 0 else 66
-            s.note(bar * 4 + off, dur, 0, pitch, vel)
-            s.note(bar * 4 + off, dur, 5, pitch + 12, vel - 18)
+            vel = 70 if off == 0 else 58
+            s.note(bar * 4 + off, dur, 0, pitch, vel - 8)
+            s.note(bar * 4 + off, dur, 5, pitch + 12, vel - 22)
 
-    # Answer phrase.
     answer = [(0.0, 0.45, A4), (0.5, 0.45, Gs4), (1.0, 0.9, E4), (2.0, 1.8, Cs4)]
     for bar in (4, 12):
         for off, dur, pitch in answer:
-            s.note(bar * 4 + off, dur, 0, pitch, 70)
-            s.note(bar * 4 + off, dur, 5, pitch + 12, 50)
+            s.note(bar * 4 + off, dur, 5, pitch, 52)
 
     # Guitar scrapes on the off-beat.
     for bar in range(bars):
@@ -157,7 +155,7 @@ def courtyard_cue() -> tuple[Seq, int]:
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: SQUARE, 1: SYNTH_BASS, 2: SYNTH_BRASS, 5: SAW_LEAD, 6: STRINGS},
+        {0: SQUARE, 1: SYNTH_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
         {0: 70, 2: 48, 5: 78, 6: 40},
     )
     s.cc(0, 9, 7, 104)
@@ -170,11 +168,10 @@ def courtyard_cue() -> tuple[Seq, int]:
 
     clock_strings(s, bars)
 
-    # Alarm brass — two-note siren every other bar.
-    for bar in range(0, bars, 2):
-        s.note(bar * 4, 0.35, 2, Gs4, 70)
-        s.note(bar * 4 + 0.5, 0.35, 2, A4, 66)
-        s.note(bar * 4 + 1.0, 0.7, 2, Gs4, 68)
+    # Soft two-note tick instead of a trumpet siren.
+    for bar in range(0, bars, 4):
+        s.note(bar * 4, 0.28, 2, Gs3, 44)
+        s.note(bar * 4 + 0.5, 0.28, 2, A3, 40)
 
     # Lead: clipped, no sustain to lean on.
     shots = [
@@ -201,8 +198,8 @@ def command_cue() -> tuple[Seq, int]:
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: CRYSTAL, 1: SLAP_BASS, 2: SYNTH_BRASS, 5: SAW_LEAD, 6: STRINGS},
-        {0: 42, 2: 82, 5: 74, 6: 50},
+        {0: CRYSTAL, 1: SLAP_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
+        {0: 42, 2: 70, 5: 74, 6: 50},
     )
     s.cc(0, 9, 7, 98)
     motor_bass(s, bars, [Cs2, Cs2, A1, Fs2, Cs2, Cs2, Gs2, Cs2])
@@ -218,7 +215,6 @@ def command_cue() -> tuple[Seq, int]:
     for bar in (0, 4, 8, 12):
         for off, pitch in riff:
             s.note(bar * 4 + off, 0.32, 5, pitch, 56)
-            s.note(bar * 4 + off, 0.28, 2, pitch - 12, 48)
 
     kit(s, bars)
     return s, bars * 4
