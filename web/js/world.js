@@ -225,18 +225,16 @@ export const world = {
         {
           id: "terminal",
           name: "command terminal",
-          rect: [498, 138, 132, 128],
+          rect: [468, 118, 172, 168],
           approach: [470, 300],
           look: (game) =>
             game.flag("logRead")
               ? "The terminal's still looping the last emergency broadcast."
               : "A cracked command terminal. Green static. It wants to talk.",
           use: (game) => game.openTerminal(),
-          useItem: (game, item) => {
-            if (item === "dataslug") game.say("That's where it came from. It has nothing new to add.");
-            else game.say("The terminal wants a slug, not whatever this is.");
-          },
+          useItem: (game) => game.openTerminal(),
           talk: (game) => game.openTerminal(),
+          walk: (game) => game.openTerminal(),
         },
         {
           id: "floor",

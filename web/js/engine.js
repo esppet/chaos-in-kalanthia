@@ -62,7 +62,10 @@ export class Adventure {
   }
 
   openTerminal() {
-    this.term?.open();
+    this.activeItem = null;
+    this.setVerb("use");
+    if (!this.term) this.term = new CommandTerm(this.root, this);
+    this.term.open();
   }
 
   onTerminalRead() {
@@ -431,12 +434,12 @@ export class Adventure {
       hs.useItem(this, this.activeItem);
       return;
     }
-    if (this.activeItem) {
-      this.say("That doesn't work.");
-      return;
-    }
     if (hs.use) {
       hs.use(this);
+      return;
+    }
+    if (this.activeItem) {
+      this.say("That doesn't work.");
       return;
     }
     this.say("I can't use that.");

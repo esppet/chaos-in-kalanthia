@@ -36,7 +36,7 @@ export class CommandTerm {
   }
 
   get isOpen() {
-    return this.el && !this.el.hidden;
+    return !!(this.el && this.el.dataset.open === "1");
   }
 
   _bind() {
@@ -55,23 +55,29 @@ export class CommandTerm {
   }
 
   open() {
+    if (!this.el) return;
     this.el.hidden = false;
+    this.el.removeAttribute("hidden");
+    this.el.dataset.open = "1";
     this.mode = "shell";
-    this.nanoEl.hidden = true;
-    this.lineEl.hidden = false;
-    this.out.innerHTML = "";
+    if (this.nanoEl) this.nanoEl.hidden = true;
+    if (this.lineEl) this.lineEl.hidden = false;
+    if (this.out) this.out.innerHTML = "";
     this._print("KALANTHIA CMD  MK-7  emergency shell");
     this._print("single user. type 'help' if you still can.");
     this._print("");
-    this.input.value = "";
+    if (this.input) {
+      this.input.value = "";
+      requestAnimationFrame(() => this.input.focus());
+    }
     this.histIdx = this.history.length;
-    requestAnimationFrame(() => this.input.focus());
   }
 
   close() {
-    if (!this.isOpen) return;
+    if (!this.el || this.el.hidden) return;
     this.el.hidden = true;
-    this.input.blur();
+    this.el.removeAttribute("data-open");
+    this.input?.blur();
     this.game.onTerminalClose?.();
   }
 

@@ -383,6 +383,10 @@ button.ghost,
   user-select: text;
 }
 
+#crt[data-open="1"] {
+  display: grid !important;
+}
+
 .crt-bezel {
   width: 520px;
   height: 318px;
