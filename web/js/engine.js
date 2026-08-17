@@ -984,6 +984,13 @@ export class Adventure {
     this.syncMusicButtons();
     this.root.querySelector("#boot").hidden = true;
     this.root.querySelector("#title").hidden = false;
+    const jump = this.debug && new URLSearchParams(location.search).get("room");
+    if (jump && this.world.rooms[jump]) {
+      this.flags.outOfFridge = true;
+      this.flags.logRead = true;
+      this.roomId = jump;
+      this.enterPlay();
+    }
     requestAnimationFrame(this.tick);
   }
 }

@@ -33,12 +33,13 @@ The score is an MT-32 / Roland SC-55 loop set (title, courtyard, command). Court
 
 ## Current playable slice
 
-Intro → military base courtyard → command room.
+Intro → military base courtyard → command room → street at Zero.
 
 1. Search the gantry wreckage for a **crowbar**
 2. Force the **blast door**
 3. Read the **command terminal** — Zero is collapsing; Annita's son Robert is still inside; the hangar ship needs three parts
-4. Take the **road to town** for the end card
+4. Take the **road to town** to stand under Apartment Building Zero
+5. The lobby is open. The ten-minute clock starts when you go in — not yet.
 
 Full story, room map, and endings: [docs/DESIGN.md](docs/DESIGN.md)
 

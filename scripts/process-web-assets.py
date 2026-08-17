@@ -186,6 +186,9 @@ def main() -> None:
         print("Rooms")
         save(pixelate_room(Image.open(SRC / "2.jpg")), OUT / "rooms" / "base-exterior.png")
         save(pixelate_room(Image.open(SRC / "7.jpg")), OUT / "rooms" / "base-interior.png")
+        zero_src = OUT / "_src" / "zero-street.jpg"
+        if zero_src.exists():
+            save(pixelate_room(Image.open(zero_src)), OUT / "rooms" / "zero-street.png")
 
     print("Sprites")
     mapping = {

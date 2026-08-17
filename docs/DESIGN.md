@@ -129,7 +129,7 @@ Russell travels to Earth at hyperspeed. His superiors demand an explanation.
 | 1 | room1 | 1 | Intro / title (meteor aftermath) | Placeholder |
 | 2 | room2 | 1 | Military base — exterior | TODO |
 | 3 | room3 | 1 | Military base — interior | TODO |
-| 10 | room10 | 1 | Zero — ground floor | TODO |
+| 10 | room10 | 1 | Zero — street / approach | Playable (web: zero-street) |
 | 12 | room12 | 1 | Zero — upper floors (Robert) | Script stub + timer |
 | 20 | room20 | 1 | Reactor bay (fuel cell) | TODO |
 | 21 | room21 | 1 | Command centre (nav module) | TODO |

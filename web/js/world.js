@@ -1,4 +1,4 @@
-/** First playable slice: intro + military base. Designed to grow room-by-room. */
+/** First playable slice: intro, military base, street at Zero. */
 
 export const world = {
   startRoom: "base-exterior",
@@ -244,6 +244,126 @@ export const world = {
         },
       ],
     },
+    "zero-street": {
+      name: "Apartment Building Zero — Street",
+      bg: "assets/rooms/zero-street.png",
+      music: "courtyard",
+      start: { x: 220, y: 328, dir: "right" },
+      scaleTop: [260, 0.52],
+      scaleBot: [350, 0.76],
+      walkable: [
+        [190, 284],
+        [270, 268],
+        [400, 264],
+        [500, 270],
+        [558, 288],
+        [580, 314],
+        [568, 348],
+        [228, 350],
+        [174, 318],
+      ],
+      onEnter(game) {
+        if (!game.flag("seenZeroStreet")) {
+          game.setFlag("seenZeroStreet");
+          game.say([
+            "There it is. Zero. The log didn't smell like this.",
+            "Upper floors still standing. For now.",
+          ]);
+        }
+      },
+      hotspots: [
+        {
+          id: "sky",
+          name: "burning sky",
+          rect: [0, 0, 300, 140],
+          look: "Same sky. Closer fire. I didn't outrun anything.",
+          use: (game) => game.say("Still not punching meteors."),
+          talk: "The sky keeps dropping the same argument.",
+        },
+        {
+          id: "zero",
+          name: "Apartment Building Zero",
+          rect: [310, 8, 250, 168],
+          approach: [420, 286],
+          look: "This close, Zero looks like a broken tooth. Robert's in the part that's still standing.",
+          use: (game) => tryZeroDoors(game),
+          walk: (game) => tryZeroDoors(game),
+          talk: "I shout the kid's name. The building answers with another groan.",
+        },
+        {
+          id: "scrap",
+          name: "road wreckage",
+          rect: [0, 90, 175, 270],
+          approach: [210, 322],
+          look: "The road here died the same way the base did. Just more of it.",
+          use: (game) => game.say("Already picked through on the way in. Nothing but rust."),
+          take: (game) => game.say("I can't pocket a gantry."),
+        },
+        {
+          id: "mid-rubble",
+          name: "fallen storeys",
+          rect: [248, 170, 120, 58],
+          approach: [290, 286],
+          look: "Floors that used to be upstairs. Whoever was in them isn't asking for help.",
+          use: (game) => game.say("I move a slab. There's only more slab."),
+        },
+        {
+          id: "slab",
+          name: "collapsed wall",
+          rect: [500, 112, 85, 150],
+          approach: [520, 292],
+          look: "A whole face of the building peeled off and lay down to die.",
+          use: (game) => game.say("Too heavy. The crowbar would just laugh at me."),
+        },
+        {
+          id: "lamp",
+          name: "street lamp",
+          rect: [558, 68, 78, 200],
+          approach: [548, 322],
+          look: "Still standing. Still useless. Optimistic, like the beacon back at the base.",
+          use: (game) => game.say("No switch. No light. Just a pole with opinions."),
+        },
+        {
+          id: "puddle",
+          name: "fire puddle",
+          rect: [300, 286, 210, 56],
+          look: "Zero burning in a pothole. I look like a man walking into a reflection.",
+        },
+        {
+          id: "road",
+          name: "road to the base",
+          rect: [155, 150, 155, 95],
+          approach: [230, 300],
+          look: "The cracked road back to the military base. The ship still needs parts.",
+          use: (game) => leaveZeroStreet(game),
+          walk: (game) => leaveZeroStreet(game),
+          talk: "Nothing on that road but smoke.",
+        },
+        {
+          id: "beacon",
+          name: "warning beacon",
+          rect: [575, 252, 48, 90],
+          approach: [548, 322],
+          look: "Another little machine doing its job. This one has a better view of the disaster.",
+          use: (game) => game.say("It's already warning everyone. Everyone already knows."),
+        },
+        {
+          id: "lobby",
+          name: "lobby doors",
+          rect: [378, 172, 100, 80],
+          approach: [420, 286],
+          look: "The glass is already gone. A dark lobby. Stairs somewhere in the smoke.",
+          use: (game) => tryZeroDoors(game),
+          useItem: (game, item) => {
+            if (item === "crowbar") game.say("The doors aren't the problem. They're already open.");
+            else game.say("That won't get me to the top floor.");
+          },
+          walk: (game) => tryZeroDoors(game),
+          talk: "Robert! ... Nothing. Either he can't hear me, or I don't want to know.",
+          take: (game) => game.say("I'll take the whole lobby if I have to. After I find a way up."),
+        },
+      ],
+    },
   },
 };
 
@@ -295,8 +415,16 @@ function tryTown(game) {
     return;
   }
   game.setFlag("headedToZero");
-  game.showEnd(
-    "To be continued",
-    "Zero is coming down. Annita's boy is still inside. Next: the megacomplex, a ten-minute clock, and a ship that will not fly until you feed it."
-  );
+  game.changeRoom("zero-street", { x: 220, y: 328, dir: "right" });
+}
+
+function leaveZeroStreet(game) {
+  game.changeRoom("base-exterior", { x: 220, y: 268, dir: "down" });
+}
+
+function tryZeroDoors(game) {
+  game.say([
+    "The lobby's open. Stairs in the dark.",
+    "The second I go in, that ten-minute clock starts. Not yet.",
+  ]);
 }
