@@ -1,64 +1,64 @@
 # Chaos in Kalanthia
 
-A Blade Runner universe point-and-click adventure built with **Adventure Game Studio (AGS)** — playable in **ScummVM**.
+A Blade Runner–universe point-and-click adventure. The playable game is a **browser** Sierra-style engine. The original Adventure Game Studio / ScummVM project is still in `game/` as reference.
 
 Russell, a replicant soldier, survives a meteor strike on the off-world colony Kalanthia. He must rescue a stranded boy from a collapsing megacomplex, salvage spaceship components from a ruined military base, escape a star destroyer-style warship, and face judgement back on Earth.
 
-## Engine
+## Play (browser)
 
-| Feature | Detail |
+**Live:** [https://esppet.github.io/chaos-in-kalanthia/](https://esppet.github.io/chaos-in-kalanthia/)
+
+Or run it locally:
+
+```bash
+./scripts/run-web.sh
+```
+
+Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on this machine. From another device on the same network, use the `other devices` URL the script prints (port 8765). Optional port: `./scripts/run-web.sh 9000`.
+
+| Control | Action |
 |---------|--------|
-| Engine | AGS 3.6 Sierra-style template |
-| Resolution | 320×200 VGA |
-| Interface | Icon bar (walk, look, interact, talk, inventory) |
-| Runtime | ScummVM, Windows, Linux, macOS |
+| Click | Walk, or apply the current verb |
+| 1 / 2 / 3 / 4 | Walk / Look / Use / Talk |
+| I | Inventory |
+| Esc | Save / load / restart |
+| WASD or arrows | Walk |
+| Space or click | Advance dialogue |
+| `?debug=1` | Show walkable floor and hotspots |
 
-## Quick start
+Saves live in this browser (`localStorage`).
 
-1. Install [AGS Editor 3.6.2](https://www.adventuregamestudio.co.uk/create/) (Windows; runs under Wine on Linux)
-2. **File → Open** → `game/Game.agf`
-3. Press **F5** to build and run, or test the compiled game in [ScummVM](https://www.scummvm.org/)
+## Current playable slice
 
-See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full workflow.
+Intro → military base courtyard → command room.
 
-## Story
+1. Search the gantry wreckage for a **crowbar**
+2. Force the **blast door**
+3. Read the **command terminal** — Zero is collapsing; Annita's son Robert is still inside; the hangar ship needs three parts
+4. Take the **road to town** for the end card
 
-Three acts, branching endings:
-
-1. **Kalanthia** — Rescue Robert from collapsing Zero megacomplex (10-minute timer), find ship parts, choose whether to bring Annita and Robert to Earth
-2. **Star Destroyer** — Escape jail, disable tractor beam with hot coffee, optional diamond ring
-3. **Earth** — Face accusations of terrorism; endings depend on who you brought home
-
-Full design: [docs/DESIGN.md](docs/DESIGN.md)
+Full story, room map, and endings: [docs/DESIGN.md](docs/DESIGN.md)
 
 ## Project layout
 
 ```
-├── game/                  # AGS project (open Game.agf in AGS Editor)
-│   ├── Game.agf           # Project file — open this
-│   ├── GameLogic.asc      # Timer, endings, global state
-│   ├── GlobalScript.asc   # Sierra-style interface
-│   └── room*.asc          # Room scripts (stubs for key scenes)
-├── docs/
-│   ├── DESIGN.md          # Full story, puzzles, room map
-│   └── GETTING_STARTED.md # Toolchain and workflow
-├── tools/Linux/           # AGS Linux runtime (for testing builds)
-└── scripts/
-    └── run-scummvm.sh     # Launch compiled game in ScummVM
+├── web/                   # Playable HTML5 game (open this)
+│   ├── index.html
+│   ├── js/                # Engine, pathfinding, room scripts
+│   └── assets/            # Rooms, Russell, items, UI
+├── game/                  # Original AGS Sierra-style project
+├── docs/DESIGN.md         # Story, puzzles, room map
+└── scripts/run-web.sh     # Local server (ES modules need http)
 ```
 
-## Current state
+## Adding a room
 
-- AGS Sierra-style project configured for *Chaos in Kalanthia*
-- Protagonist renamed to Russell
-- Intro sequence, Zero collapse timer, and ending logic scaffolded in `GameLogic.asc`
-- Room script stubs for key scenes (Zero rescue, ship hangar, jail escape, tribunal)
-- Placeholder art from AGS template — replace with Blade Runner–inspired assets
+Rooms are data in `web/js/world.js`: background, walkable polygon, start point, and hotspots (`look` / `use` / `talk` / `useItem`). Drop a 640×360 PNG in `web/assets/rooms/` and register it. `?debug=1` is the fastest way to tune the floor polygon.
 
-## ScummVM compatibility
+## AGS / ScummVM (archived path)
 
-Build the game in AGS Editor (**Build → Build EXE(s)**), then point ScummVM at the output folder containing `chaos-in-kalanthia.exe` (or the Linux binary).
+The AGS 3.6 Sierra-style project in `game/` was the first attempt, aimed at ScummVM. Tooling: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md). New rooms and art should go into `web/` unless you specifically want the AGS build.
 
 ## License
 
-Fan project. Blade Runner is property of its respective rights holders. AGS template assets follow the [AGS license](https://adventuregamestudio.github.io/ags-manual/Copyright.html).
+Fan project. Blade Runner is property of its respective rights holders. VT323 font is SIL Open Font License. AGS template assets in `game/` follow the [AGS license](https://adventuregamestudio.github.io/ags-manual/Copyright.html).

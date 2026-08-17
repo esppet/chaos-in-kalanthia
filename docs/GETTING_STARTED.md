@@ -1,5 +1,17 @@
 # Getting Started
 
+Play in a browser: [https://esppet.github.io/chaos-in-kalanthia/](https://esppet.github.io/chaos-in-kalanthia/)
+
+The playable game is the HTML5 build. From the repo root:
+
+```bash
+./scripts/run-web.sh
+```
+
+Open [http://127.0.0.1:8765/](http://127.0.0.1:8765/). Rooms and puzzles live in `web/js/world.js`.
+
+The rest of this page is the older Adventure Game Studio / ScummVM toolchain, kept for the project in `game/`.
+
 ## Prerequisites
 
 | Tool | Purpose | Download |

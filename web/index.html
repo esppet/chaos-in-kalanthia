@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chaos in Kalanthia</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/game.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="letterbox">
+        <div id="scaler">
+        <div id="stage">
+          <canvas id="game" width="640" height="360" aria-label="Game"></canvas>
+
+          <div id="hud" hidden>
+            <div id="iconbar">
+              <div class="verbs">
+                <button data-verb="walk" class="active" title="Walk (1)">
+                  <img src="assets/ui/icon-walk.png" alt="" />Walk
+                </button>
+                <button data-verb="look" title="Look (2)">
+                  <img src="assets/ui/icon-look.png" alt="" />Look
+                </button>
+                <button data-verb="use" title="Use (3)">
+                  <img src="assets/ui/icon-use.png" alt="" />Use
+                </button>
+                <button data-verb="talk" title="Talk (4)">
+                  <img src="assets/ui/icon-talk.png" alt="" />Talk
+                </button>
+              </div>
+              <div id="room-name"></div>
+              <div class="tools">
+                <button id="btn-inv" title="Inventory (I)">
+                  <img src="assets/ui/icon-inv.png" alt="" />Inv
+                </button>
+                <button id="btn-menu" title="Menu (Esc)">Menu</button>
+              </div>
+            </div>
+            <div id="status"></div>
+            <div id="inventory" hidden>
+              <div class="inv-label">Inventory</div>
+              <div id="inv-slots"></div>
+            </div>
+          </div>
+
+          <div id="speech" hidden></div>
+
+          <div id="boot">Loading Kalanthia…</div>
+
+          <div id="title" hidden>
+            <div class="title-inner">
+              <p class="eyebrow">A point-and-click adventure</p>
+              <h1>Chaos in Kalanthia</h1>
+              <p class="tag">Off-world. After the meteor. Before the verdict.</p>
+              <div class="title-actions">
+                <button id="btn-begin">Begin</button>
+                <button id="btn-continue" hidden>Continue</button>
+              </div>
+              <p class="fine">Click to walk · 1–4 verbs · Esc menu</p>
+            </div>
+          </div>
+
+          <div id="intro" hidden>
+            <div id="intro-lines"></div>
+            <p class="hint" hidden>Click to continue</p>
+          </div>
+
+          <div id="menu" hidden>
+            <div class="panel">
+              <h2>Paused</h2>
+              <button id="btn-resume">Resume</button>
+              <button id="btn-save">Save</button>
+              <button id="btn-load">Load</button>
+              <button id="btn-restart">Restart</button>
+            </div>
+          </div>
+
+          <div id="endcard" hidden>
+            <div class="panel">
+              <h2>To be continued</h2>
+              <p></p>
+              <p class="fine">Your save is in this browser. Refresh and hit Continue.</p>
+              <button id="btn-end-title">Title</button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

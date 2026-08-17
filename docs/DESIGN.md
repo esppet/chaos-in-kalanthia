@@ -1,6 +1,6 @@
 # Chaos in Kalanthia — Design Document
 
-A Blade Runner universe point-and-click adventure built with **Adventure Game Studio (AGS)**, playable in **ScummVM**.
+A Blade Runner universe point-and-click adventure. The active runtime is a custom HTML5 Sierra-style engine in `web/`. The AGS / ScummVM project in `game/` is kept as reference.
 
 ## Vision
 
@@ -10,7 +10,7 @@ A Blade Runner universe point-and-click adventure built with **Adventure Game St
 | **Setting** | Kalanthia — remote colony planet, devastated by meteor strike |
 | **Genre** | Point-and-click adventure, Sierra-style interface |
 | **Tone** | Tense survival, noir undertones, moments of humanity |
-| **Engine** | AGS 3.6 Sierra-style template, 320×200 |
+| **Engine** | HTML5 Sierra-style (640×360), plus archived AGS 3.6 project |
 | **Structure** | 3 acts, branching ending |
 
 ## Premise

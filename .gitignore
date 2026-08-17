@@ -12,6 +12,9 @@ tools/
 # Release packages
 dist/
 
+# Local playable snapshots (scripts/backup-web.sh)
+backups/
+
 # OS / editor
 .DS_Store
 Thumbs.db
