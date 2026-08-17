@@ -20,26 +20,26 @@ ROOT = Path(__file__).resolve().parents[1]
 SF2 = Path("/usr/share/scummvm/Roland_SC-55.sf2")
 OUT = ROOT / "web" / "assets" / "music"
 SR = 22050
-ARCHIVE = "v4-no-brass"
+ARCHIVE = "v5-tense"
 
-# GM programs — dry, rhythmic, no choir wash.
-EP = 4
-SLAP_BASS = 36
+# GM programs — dry, no choir, no brass, no slap-bass dance kit.
+FINGER_BASS = 33
 SYNTH_BASS = 38
 STRINGS = 48
-SYNTH_BRASS = 62
-SAW_LEAD = 81
-SQUARE = 80
-CRYSTAL = 98
+TIMPANI = 47
 MUTED_GTR = 28
+SQUARE = 80
+SAW_LEAD = 81
+CRYSTAL = 98
+ATMOS = 99
 
-KICK, SNARE, RIDE, TOM_LO, CHH, OHH = 36, 38, 51, 41, 42, 46
+KICK, RIM, SNARE, TOM_LO, TOM_FL, CHH, WOOD = 36, 37, 38, 41, 43, 42, 76
 
 Gs1, A1, B1 = 32, 33, 35
-Cs2, Ds2, E2, Fs2, Gs2, A2, B2 = 37, 39, 40, 42, 44, 45, 47
-Cs3, Ds3, E3, Fs3, Gs3, A3, B3 = 49, 51, 52, 54, 56, 57, 59
-Cs4, Ds4, E4, Fs4, Gs4, A4, B4 = 61, 63, 64, 66, 68, 69, 71
-Cs5, Ds5, E5, Fs5, Gs5 = 73, 75, 76, 78, 80
+Cs2, D2, Ds2, E2, Fs2, Gs2, A2, B2 = 37, 38, 39, 40, 42, 44, 45, 47
+Cs3, D3, Ds3, E3, Fs3, Gs3, A3, B3 = 49, 50, 51, 52, 54, 56, 57, 59
+Cs4, D4, Ds4, E4, Fs4, Gs4, A4, B4 = 61, 62, 63, 64, 66, 68, 69, 71
+Cs5, D5, Ds5, E5, Fs5, Gs5 = 73, 74, 75, 76, 78, 80
 
 
 class Seq:
@@ -80,143 +80,188 @@ class Seq:
             self.cc(0, ch, 10, (pans or {}).get(ch, 64))
 
 
-def kit(s: Seq, bars: int) -> None:
-    """Kick every beat, snare on 2 and 4, 16th hats. The clock."""
+def heartbeat(s: Seq, bars: int, drag: float = 0.0) -> None:
+    """Kick on 1, ghost on 3. A pulse, not a dance floor."""
     for bar in range(bars):
         b = bar * 4
-        for beat in range(4):
-            s.note(b + beat, 0.16, 9, KICK, 88 if beat == 0 else 72)
-        s.note(b + 1, 0.14, 9, SNARE, 86)
-        s.note(b + 3, 0.14, 9, SNARE, 90)
-        for i in range(16):
-            s.note(b + i * 0.25, 0.06, 9, CHH, 52 if i % 4 == 0 else (36 if i % 2 == 0 else 24))
-        if bar % 2 == 1:
-            s.note(b + 3.5, 0.12, 9, OHH, 44)
+        s.note(b, 0.22, 9, KICK, 86)
+        s.note(b + 2 + drag, 0.16, 9, KICK, 50)
 
 
-def motor_bass(s: Seq, bars: int, roots: list[int], ch: int = 1) -> None:
-    """Eighth-note engine. Does not rest."""
+def rim_clock(s: Seq, bars: int, eighths: bool = False) -> None:
+    """Metronome leftover minutes. Quarter or eighth rims, no backbeat snare."""
+    steps = 8 if eighths else 4
+    step = 4.0 / steps
     for bar in range(bars):
-        root = roots[bar % len(roots)]
-        for i in range(8):
-            pitch = root if i not in (3, 7) else root + 7
-            s.note(bar * 4 + i * 0.5, 0.36, ch, pitch, 80 if i == 0 else 58)
+        for i in range(steps):
+            vel = 52 if i == 0 else (34 if i % 2 == 0 else 22)
+            s.note(bar * 4 + i * step, 0.05, 9, RIM, vel)
 
 
-def clock_strings(s: Seq, bars: int, ch: int = 6) -> None:
-    """16th-note ostinato — the countdown you hear in your teeth."""
-    cell = [Cs4, Gs3, Cs4, E4, Cs4, Gs3, B3, Gs3]
+def wood_ticks(s: Seq, bars: int) -> None:
+    """Off-eighth woodblock — cheap countdown, not a hi-hat grid."""
     for bar in range(bars):
-        for i, pitch in enumerate(cell * 2):
-            s.note(bar * 4 + i * 0.25, 0.18, ch, pitch, 46 if i % 4 == 0 else 32)
+        for i in (1, 3, 5, 7):
+            s.note(bar * 4 + i * 0.5, 0.04, 9, WOOD, 26 if i == 1 else 18)
+
+
+def impact(s: Seq, beat: float) -> None:
+    s.note(beat, 0.35, 9, TOM_LO, 62)
+    s.note(beat + 0.08, 0.28, 9, TOM_FL, 48)
+    s.note(beat, 0.9, 3, Cs2, 44)
+
+
+def pedal_bass(s: Seq, bars: int, pairs: list[tuple[int, int]], ch: int = 1) -> None:
+    """Half-note pedals. Holds the floor without an eighth-note motor."""
+    for bar in range(bars):
+        a, b = pairs[bar % len(pairs)]
+        s.note(bar * 4, 1.9, ch, a, 74)
+        s.note(bar * 4 + 2, 1.7, ch, b, 60)
 
 
 def title_cue() -> tuple[Seq, int]:
-    """Mission start — hero is already moving."""
-    bpm = 132
+    """The clock is already running. No swagger."""
+    bpm = 100
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: MUTED_GTR, 1: SLAP_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
-        {0: 60, 2: 80, 5: 72, 6: 44},
+        {0: MUTED_GTR, 1: FINGER_BASS, 2: SQUARE, 3: TIMPANI, 5: SAW_LEAD, 6: STRINGS},
+        {0: 58, 2: 78, 5: 70, 6: 42},
     )
-    s.cc(0, 9, 7, 100)
-    motor_bass(s, bars, [Cs2, Cs2, A1, Gs2] * 4)
-    clock_strings(s, bars)
+    s.cc(0, 9, 7, 92)
+    s.cc(0, 6, 7, 62)
+    heartbeat(s, bars, drag=0.06)
+    rim_clock(s, bars, eighths=False)
+    wood_ticks(s, bars)
+    pedal_bass(s, bars, [(Cs2, Cs2), (Cs2, D2), (Cs2, Cs2), (Gs1, A1)])
 
-    # Tight guitar/lead riff — no brass fanfare.
-    riff = [
-        (0.0, 0.45, Cs4), (0.5, 0.45, E4), (1.0, 0.9, Gs4),
-        (2.0, 0.45, Fs4), (2.5, 0.45, E4), (3.0, 0.9, Cs4),
-    ]
-    for bar in (0, 2, 8, 10):
-        for off, dur, pitch in riff:
-            vel = 70 if off == 0 else 58
-            s.note(bar * 4 + off, dur, 0, pitch, vel - 8)
-            s.note(bar * 4 + off, dur, 5, pitch + 12, vel - 22)
-
-    answer = [(0.0, 0.45, A4), (0.5, 0.45, Gs4), (1.0, 0.9, E4), (2.0, 1.8, Cs4)]
-    for bar in (4, 12):
-        for off, dur, pitch in answer:
-            s.note(bar * 4 + off, dur, 5, pitch, 52)
-
-    # Guitar scrapes on the off-beat.
+    # Thin high clock — not a melody.
     for bar in range(bars):
-        s.note(bar * 4 + 1.5, 0.2, 2, Gs3, 48)
-        s.note(bar * 4 + 3.5, 0.2, 2, Cs4, 50)
+        s.note(bar * 4 + 0.0, 0.08, 2, Gs4, 28)
+        s.note(bar * 4 + 1.0, 0.08, 2, Gs4, 18)
+        s.note(bar * 4 + 2.0, 0.08, 2, A4, 24)
+        s.note(bar * 4 + 3.0, 0.08, 2, Gs4, 16)
 
-    kit(s, bars)
+    # Descending warning, sparse. Never climbs like a hook.
+    warning = [
+        (0, [(0.0, 1.4, Gs3), (1.5, 2.2, E3)]),
+        (4, [(0.0, 0.9, A3), (1.0, 2.6, Gs3)]),
+        (8, [(0.0, 1.4, B3), (1.5, 2.2, Gs3)]),
+        (12, [(0.0, 0.7, D4), (0.8, 2.8, Cs4)]),
+    ]
+    for bar, notes in warning:
+        for off, dur, pitch in notes:
+            s.note(bar * 4 + off, dur, 5, pitch, 42)
+            s.note(bar * 4 + off, dur, 0, pitch - 12, 36)
+
+    # Low fifth, two bars only — pressure, not a pad bed.
+    s.chord(8 * 4, 7.5, 6, [Cs3, Gs3], 22)
+    impact(s, 7 * 4 + 3.5)
+    impact(s, 15 * 4 + 3.5)
     return s, bars * 4
 
 
 def courtyard_cue() -> tuple[Seq, int]:
-    """The building is coming down. Run."""
-    bpm = 152
+    """Outside: the sky is still falling. Faster clock, still no groove."""
+    bpm = 108
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: SQUARE, 1: SYNTH_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
-        {0: 70, 2: 48, 5: 78, 6: 40},
+        {0: MUTED_GTR, 1: SYNTH_BASS, 2: SQUARE, 3: TIMPANI, 5: SAW_LEAD, 6: STRINGS},
+        {0: 50, 2: 74, 5: 68, 6: 38},
     )
-    s.cc(0, 9, 7, 104)
+    s.cc(0, 9, 7, 96)
+    s.cc(0, 6, 7, 58)
+    heartbeat(s, bars, drag=0.04)
+    rim_clock(s, bars, eighths=True)
+    wood_ticks(s, bars)
+    pedal_bass(
+        s,
+        bars,
+        [(Cs2, Cs2), (Cs2, D2), (Cs2, Cs2), (A1, Gs1), (Cs2, Cs2), (D2, Cs2), (Cs2, A1), (Gs1, Gs1)],
+    )
 
-    # Pedal sixteenth bass — Geiger counter / timer.
-    for bar in range(bars):
-        root = Cs2 if bar % 8 < 5 else (A1 if bar % 8 < 7 else Gs2)
+    # Sixteenth ticks in the second half — time running shorter, not a drum fill.
+    for bar in range(8, bars):
         for i in range(16):
-            s.note(bar * 4 + i * 0.25, 0.16, 1, root, 76 if i == 0 else (54 if i % 4 == 0 else 42))
+            if i % 2 == 0:
+                continue
+            s.note(bar * 4 + i * 0.25, 0.04, 9, CHH, 16)
 
-    clock_strings(s, bars)
+    # Tritone alarm, short. Far siren, not a fanfare.
+    for bar in range(0, bars, 2):
+        s.note(bar * 4, 0.18, 2, Gs4, 34)
+        s.note(bar * 4 + 0.28, 0.32, 2, D5, 28)
 
-    # Soft two-note tick instead of a trumpet siren.
-    for bar in range(0, bars, 4):
-        s.note(bar * 4, 0.28, 2, Gs3, 44)
-        s.note(bar * 4 + 0.5, 0.28, 2, A3, 40)
+    # Guitar: isolated scrapes, no riff.
+    for bar in (1, 5, 9, 13):
+        s.note(bar * 4 + 3.0, 0.16, 0, Gs3, 40)
+        s.note(bar * 4 + 3.5, 0.22, 0, D4, 36)
 
-    # Lead: clipped, no sustain to lean on.
-    shots = [
-        (0, Cs5), (2, E5), (4, Gs4), (6, Cs5),
-        (8, B4), (10, Gs4), (12, A4), (14, Gs4),
-        (16, Cs5), (18, Fs5), (20, E5), (22, Cs5),
-        (24, B4), (26, Gs4), (28, E4), (30, Cs5),
-        (32, Gs4), (34, A4), (36, B4), (38, Cs5),
-        (40, E5), (42, Cs5), (44, B4), (46, Gs4),
-        (48, Cs5), (50, E5), (52, Gs4), (54, Cs4),
-        (56, Gs4), (58, E4), (60, Cs5), (62, Gs4),
+    # Lead: four long falling phrases. No bounce.
+    falls = [
+        (0, [(0.0, 1.6, E4), (2.0, 1.7, Cs4)]),
+        (4, [(0.0, 1.2, Fs4), (1.5, 2.2, D4)]),
+        (8, [(0.0, 0.8, Gs4), (1.0, 1.2, E4), (2.5, 1.3, Cs4)]),
+        (12, [(0.0, 1.4, A4), (1.6, 2.1, Gs4)]),
     ]
-    for beat, pitch in shots:
-        s.note(beat, 0.35, 5, pitch, 58)
-        s.note(beat, 0.28, 0, pitch - 12, 50)
+    for bar, notes in falls:
+        for off, dur, pitch in notes:
+            s.note(bar * 4 + off, dur, 5, pitch, 40)
 
-    kit(s, bars)
+    s.chord(0, 7.6, 6, [Cs3, Gs2], 18)
+    s.chord(8 * 4, 7.6, 6, [D3, Gs2], 20)
+    impact(s, 3 * 4 + 3.5)
+    impact(s, 7 * 4 + 3.5)
+    impact(s, 11 * 4 + 3.5)
+    impact(s, 15 * 4 + 3.4)
     return s, bars * 4
 
 
 def command_cue() -> tuple[Seq, int]:
-    """Steal the log. Do not linger."""
-    bpm = 140
+    """Inside: steal the log. Fluorescent pressure, not a chase theme."""
+    bpm = 96
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: CRYSTAL, 1: SLAP_BASS, 2: MUTED_GTR, 5: SAW_LEAD, 6: STRINGS},
-        {0: 42, 2: 70, 5: 74, 6: 50},
+        {0: CRYSTAL, 1: FINGER_BASS, 2: SQUARE, 3: TIMPANI, 5: ATMOS, 6: STRINGS},
+        {0: 40, 2: 70, 5: 54, 6: 46},
     )
-    s.cc(0, 9, 7, 98)
-    motor_bass(s, bars, [Cs2, Cs2, A1, Fs2, Cs2, Cs2, Gs2, Cs2])
-    clock_strings(s, bars)
+    s.cc(0, 9, 7, 88)
+    s.cc(0, 5, 7, 70)
+    heartbeat(s, bars, drag=0.1)
+    rim_clock(s, bars, eighths=False)
 
-    # Crystal blips — computer, not a hymn.
+    pedal_bass(
+        s,
+        bars,
+        [(Cs2, Cs2), (Cs2, Cs2), (D2, Cs2), (Gs1, A1)],
+    )
+
+    # Terminal cursor. Off-beats only.
     for bar in range(bars):
-        s.note(bar * 4 + 0.75, 0.12, 0, Gs5, 44)
-        s.note(bar * 4 + 1.75, 0.12, 0, Cs5, 40)
-        s.note(bar * 4 + 2.75, 0.12, 0, E5, 42)
+        s.note(bar * 4 + 0.75, 0.08, 0, Gs5, 36)
+        s.note(bar * 4 + 1.75, 0.08, 0, E5, 28)
+        s.note(bar * 4 + 2.75, 0.08, 0, Cs5, 32)
+        s.note(bar * 4 + 3.5, 0.06, 0, Gs4, 22)
 
-    riff = [(0.0, Cs5), (0.5, B4), (1.0, Gs4), (1.5, Cs5), (2.5, E5), (3.0, Cs5)]
-    for bar in (0, 4, 8, 12):
-        for off, pitch in riff:
-            s.note(bar * 4 + off, 0.32, 5, pitch, 56)
+    # Fluorescent buzz — two pitches that never resolve.
+    for bar in range(0, bars, 4):
+        s.note(bar * 4, 3.6, 5, Gs3, 26)
+        s.note(bar * 4 + 4, 3.6, 5, A3, 24)
 
-    kit(s, bars)
+    # Square ticks that tighten in the last four bars.
+    for bar in range(bars):
+        rate = 8 if bar < 12 else 16
+        for i in range(rate):
+            if i % 2:
+                continue
+            s.note(bar * 4 + i * (4 / rate), 0.05, 2, Cs5 if bar < 12 else D5, 18 if bar < 12 else 22)
+
+    s.chord(4 * 4, 7.4, 6, [Cs3, Gs3], 16)
+    s.chord(12 * 4, 7.4, 6, [D3, Gs3], 18)
+    impact(s, 7 * 4 + 3.6)
+    impact(s, 15 * 4 + 3.5)
     return s, bars * 4
 
 
@@ -315,7 +360,7 @@ def main() -> None:
         subprocess.run(
             [
                 ffmpeg, "-y", "-i", str(ogg),
-                "-af", "loudnorm=I=-15:TP=-1.2:LRA=8,aresample=22050",
+                "-af", "loudnorm=I=-17:TP=-1.5:LRA=9,aresample=22050",
                 "-c:a", "libvorbis", "-q:a", "4", str(norm),
             ],
             check=True,

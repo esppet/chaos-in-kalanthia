@@ -3,9 +3,9 @@
 export const world = {
   startRoom: "base-exterior",
   music: {
-    title: "assets/music/title.ogg",
-    courtyard: "assets/music/courtyard.ogg",
-    command: "assets/music/command.ogg",
+    title: "assets/music/title.ogg?v=5",
+    courtyard: "assets/music/courtyard.ogg?v=5",
+    command: "assets/music/command.ogg?v=5",
   },
   intro: [
     "Kalanthia. Off-world colony.",
