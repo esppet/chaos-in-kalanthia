@@ -94,7 +94,7 @@ export const world = {
           id: "crowbar-prop",
           name: "crowbar",
           image: "assets/items/crowbar.png",
-          rect: [96, 272, 56, 40],
+          rect: [108, 282, 52, 36],
           approach: [176, 318],
           visible: (game) => !game.has("crowbar"),
           look: "A crowbar jammed through a girder. That's leverage.",
@@ -119,7 +119,7 @@ export const world = {
           id: "fridge",
           name: "refrigerator door",
           image: "assets/items/fridge.png",
-          rect: [18, 196, 74, 118],
+          rect: [4, 214, 96, 112],
           approach: [176, 322],
           look: (game) =>
             game.flag("outOfFridge")
@@ -260,15 +260,7 @@ function knockFridge(game) {
   else if (n === 3) game.say("One more.");
   else {
     game.setFlag("outOfFridge");
-    game.player.x = 176;
-    game.player.y = 322;
-    game.player.dir = "right";
-    game.setFlag("wokeInWreckage");
-    game.say([
-      "The door gives. I climb out of a fridge.",
-      "Meteor insurance. One star.",
-      "The sky's still falling. I need a way out.",
-    ]);
+    game.startEmerge();
   }
   game.autosave();
 }

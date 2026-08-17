@@ -48,14 +48,31 @@ export class Adventure {
     this.tick = this.tick.bind(this);
     this.music = new Soundtrack();
     this.shake = null;
+    this.emerge = null;
   }
 
   trapped() {
-    return this.roomId === "base-exterior" && !this.flag("outOfFridge");
+    return this.roomId === "base-exterior" && !this.flag("outOfFridge") && !this.emerge;
   }
 
   shakeProp(id, seconds) {
     this.shake = { id, t: seconds, dur: seconds };
+  }
+
+  startEmerge() {
+    this.emerge = {
+      t: 0,
+      climb: 0.55,
+      dur: 1.6,
+      x0: 82,
+      y0: 306,
+      x1: 176,
+      y1: 322,
+    };
+    this.player.x = 82;
+    this.player.y = 306;
+    this.player.dir = "right";
+    this.shakeProp("fridge", 0.4);
   }
 
   room() {
@@ -99,6 +116,7 @@ export class Adventure {
     for (const item of Object.values(this.world.items)) {
       if (item.icon) paths.add(item.icon);
     }
+    paths.add("assets/sprites/russell-emerge.png");
     for (const dir of ["down", "up", "left", "right"]) {
       paths.add(`assets/sprites/russell-${dir}.png`);
       paths.add(`assets/sprites/russell-${dir}-walk.png`);
@@ -312,6 +330,7 @@ export class Adventure {
       this.advanceSpeech();
       return;
     }
+    if (this.emerge) return;
     const hs = this.hotspotAt(x, y);
     if (this.trapped()) {
       if (hs?.id === "fridge") {
@@ -583,6 +602,7 @@ export class Adventure {
     if (this.busy || this.speechVisible) return;
     if (!this.root.querySelector("#menu").hidden) return;
     if (this.trapped()) return;
+    if (this.emerge) return;
     const room = this.room();
     if (!room) return;
 
@@ -671,11 +691,45 @@ export class Adventure {
     }
   }
 
+  stepEmerge(dt) {
+    const e = this.emerge;
+    if (!e) return;
+    e.t += dt;
+    this.player.dir = "right";
+    if (e.t < e.climb) {
+      this.player.x = e.x0;
+      this.player.y = e.y0;
+      this.moving = false;
+      return;
+    }
+    const u = Math.min(1, (e.t - e.climb) / (e.dur - e.climb));
+    const ease = 1 - (1 - u) * (1 - u);
+    this.player.x = e.x0 + (e.x1 - e.x0) * ease;
+    this.player.y = e.y0 + (e.y1 - e.y0) * ease;
+    this.moving = true;
+    this.walkPhase += dt;
+    if (u < 1) return;
+    this.emerge = null;
+    this.moving = false;
+    this.player.x = e.x1;
+    this.player.y = e.y1;
+    this.setFlag("wokeInWreckage");
+    this.say([
+      "The door gives. I climb out of a fridge.",
+      "Meteor insurance. One star.",
+      "The sky's still falling. I need a way out.",
+    ]);
+    this.autosave();
+  }
+
   drawPlayer(ctx) {
     if (this.trapped()) return;
-    const walking = this.moving && !this.speechVisible;
+    const climbing = this.emerge && this.emerge.t < this.emerge.climb;
+    const walking = this.moving && !this.speechVisible && !climbing;
     const useWalk = walking && Math.floor(this.walkPhase * 6) % 2 === 1;
-    const src = `assets/sprites/russell-${this.player.dir}${useWalk ? "-walk" : ""}.png`;
+    const src = climbing
+      ? "assets/sprites/russell-emerge.png"
+      : `assets/sprites/russell-${this.player.dir}${useWalk ? "-walk" : ""}.png`;
     const im = this.img(src) || this.img(`assets/sprites/russell-${this.player.dir}.png`);
     if (!im) return;
     const scale = this.playerScale();
@@ -861,6 +915,7 @@ export class Adventure {
         this.shake.t -= dt;
         if (this.shake.t <= 0) this.shake = null;
       }
+      this.stepEmerge(dt);
       this.stepPlayer(dt);
       if (this.fadeDir !== 0) {
         this.fade += this.fadeDir * dt * 2.6;
