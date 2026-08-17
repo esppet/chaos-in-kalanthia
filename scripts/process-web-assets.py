@@ -207,6 +207,8 @@ def main() -> None:
         save(im, OUT / "sprites" / f"{name}.png")
     save(flip_h(sprites["russell-right"]), OUT / "sprites" / "russell-left.png")
     save(flip_h(sprites["russell-right-walk"]), OUT / "sprites" / "russell-left-walk.png")
+    if sprites.get("annita-right"):
+        save(flip_h(sprites["annita-right"]), OUT / "sprites" / "annita-left.png")
 
     if not sprites_only:
         print("Items")

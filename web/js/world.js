@@ -7,6 +7,10 @@ export const world = {
     courtyard: "assets/music/courtyard.ogg?v=5",
     command: "assets/music/command.ogg?v=6",
   },
+  portraits: {
+    annita: "assets/portraits/annita.png",
+    russell: "assets/portraits/russell.png",
+  },
   intro: [
     "Kalanthia. Off-world colony.",
     "A meteor strike has shattered the surface.",
@@ -366,8 +370,12 @@ export const world = {
           id: "annita",
           name: "Annita",
           image: "assets/sprites/annita-right.png",
+          imageLeft: "assets/sprites/annita-left.png",
+          imageRight: "assets/sprites/annita-right.png",
+          facing: "right",
+          meet: true,
           rect: [356, 178, 72, 100],
-          approach: [360, 290],
+          approach: [338, 292],
           look: (game) =>
             game.flag("talkedToAnnita")
               ? "Annita. Ash in her hair. She's not leaving until Robert comes out."
@@ -439,16 +447,22 @@ function leaveZeroStreet(game) {
 }
 
 function talkAnnita(game) {
-  if (game.flag("talkedToAnnita")) {
-    game.say("Every minute the stairs get worse. Please.");
-    return;
-  }
+  const repeat = game.flag("talkedToAnnita");
   game.setFlag("talkedToAnnita");
-  game.say([
-    "You. Military. Please.",
-    "My boy is still up there. Robert. Top floors.",
-    "The smoke turned me back. I can't reach him.",
-  ]);
+  game.converse({
+    actor: "annita",
+    playerStand: { x: 338, y: 292, dir: "right" },
+    actorStand: { x: 400, y: 290, facing: "left" },
+    lines: repeat
+      ? [{ who: "annita", text: "Every minute the stairs get worse. Please." }]
+      : [
+          { who: "annita", text: "You. Military. Please." },
+          { who: "russell", text: "The log said a boy was still inside." },
+          { who: "annita", text: "Robert. My son. Top floors." },
+          { who: "annita", text: "The smoke turned me back. I can't reach him." },
+          { who: "russell", text: "Then I will." },
+        ],
+  });
 }
 
 function tryZeroDoors(game) {

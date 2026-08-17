@@ -82,6 +82,7 @@ body,
 #status,
 #inventory,
 #speech,
+#talkshot,
 #boot,
 #title,
 #intro,
@@ -214,6 +215,47 @@ body,
   font-size: 20px;
   line-height: 1.25;
   text-align: center;
+}
+
+#talkshot {
+  position: absolute;
+  left: 10px;
+  top: 46px;
+  z-index: 4;
+  pointer-events: none;
+}
+
+#talkshot figure {
+  margin: 0;
+  width: 148px;
+  background: #120c08;
+  border: 3px solid #6a4a22;
+  box-shadow: 0 0 0 1px #2a1a0c, 0 8px 18px rgba(0, 0, 0, 0.55);
+}
+
+#talkshot img {
+  display: block;
+  width: 142px;
+  height: 188px;
+  object-fit: cover;
+  object-position: top center;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#talkshot figcaption {
+  padding: 2px 4px 3px;
+  text-align: center;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber);
+  background: #1a120c;
+  border-top: 1px solid #6a4a22;
+}
+
+#speech.with-shot {
+  left: 168px;
 }
 
 #boot,

@@ -51,6 +51,9 @@ export class Adventure {
     this.term = null;
     this.shake = null;
     this.emerge = null;
+    this.actors = {};
+    this.npcMove = null;
+    this.talkWho = null;
   }
 
   trapped() {
@@ -134,6 +137,8 @@ export class Adventure {
       if (room.bg) paths.add(room.bg);
       for (const hs of room.hotspots || []) {
         if (hs.image) paths.add(hs.image);
+        if (hs.imageLeft) paths.add(hs.imageLeft);
+        if (hs.imageRight) paths.add(hs.imageRight);
         if (hs.baseImage) paths.add(hs.baseImage);
       }
     }
@@ -145,6 +150,9 @@ export class Adventure {
       paths.add(`assets/sprites/russell-${dir}.png`);
       paths.add(`assets/sprites/russell-${dir}-walk.png`);
     }
+    for (const src of Object.values(this.world.portraits || {})) {
+      if (src) paths.add(src);
+    }
     await Promise.all(
       [...paths].map(
         (src) =>
@@ -155,7 +163,7 @@ export class Adventure {
               resolve();
             };
             img.onerror = () => reject(new Error("Failed to load " + src));
-            img.src = src.includes("?") ? src : `${src}?v=8`;
+            img.src = src.includes("?") ? src : `${src}?v=9`;
           })
       )
     );
@@ -380,7 +388,8 @@ export class Adventure {
       return;
     }
     if (this.verb === "talk") {
-      this.doTalk(hs);
+      if (hs?.talk) this.walkThen(() => this.doTalk(hs), hs);
+      else this.doTalk(hs);
       return;
     }
     if (this.verb === "pickup") {
@@ -454,6 +463,10 @@ export class Adventure {
   }
 
   walkThen(action, hs) {
+    if (hs?.meet) {
+      action();
+      return;
+    }
     const room = this.room();
     const dest = approachPoint(hs, room.walkable);
     if (!dest) {
@@ -519,12 +532,167 @@ export class Adventure {
     if (!this.speechVisible) this.advanceSpeech();
   }
 
+  converse(opts) {
+    const hs = (this.room()?.hotspots || []).find((h) => h.id === opts.actor);
+    if (!hs) {
+      this.say(opts.lines);
+      return;
+    }
+    this.ensureActor(hs);
+    const stand = opts.playerStand;
+    this.moveActor(hs, opts.actorStand, null);
+    const speak = () => {
+      if (stand?.dir) this.player.dir = stand.dir;
+      if (this.npcMove) this.npcMove.after = () => this.say(opts.lines);
+      else this.say(opts.lines);
+    };
+    if (!stand) {
+      speak();
+      return;
+    }
+    const dx = stand.x - this.player.x;
+    const dy = stand.y - this.player.y;
+    if (dx * dx + dy * dy < 18 * 18) {
+      speak();
+      return;
+    }
+    this.pending = speak;
+    this.walkTo(stand.x, stand.y);
+  }
+
+  ensureActor(hs) {
+    if (!hs?.id) return null;
+    if (this.actors[hs.id]) return this.actors[hs.id];
+    const [x, y, w, h] = hs.rect;
+    this.actors[hs.id] = {
+      x: this.flags[hs.id + "X"] ?? x + w / 2,
+      y: this.flags[hs.id + "Y"] ?? y + h,
+      w,
+      h,
+      facing: this.flags[hs.id + "Facing"] || hs.facing || "right",
+    };
+    this.syncActorRect(hs);
+    return this.actors[hs.id];
+  }
+
+  syncActorRect(hs) {
+    const a = this.actors[hs.id];
+    if (!a || !hs.rect) return;
+    hs.rect = [Math.round(a.x - a.w / 2), Math.round(a.y - a.h), a.w, a.h];
+  }
+
+  actorImage(hs) {
+    const a = this.actors[hs.id];
+    const facing = a?.facing || hs.facing || "right";
+    if (facing === "left") return hs.imageLeft || hs.image;
+    return hs.imageRight || hs.image;
+  }
+
+  moveActor(hs, stand, done) {
+    const a = this.ensureActor(hs);
+    if (!a || !stand) {
+      if (done) done();
+      return;
+    }
+    const dx = stand.x - a.x;
+    const dy = stand.y - a.y;
+    if (stand.facing) a.facing = dx < -2 ? "left" : dx > 2 ? "right" : stand.facing;
+    if (dx * dx + dy * dy < 9) {
+      a.x = stand.x;
+      a.y = stand.y;
+      if (stand.facing) a.facing = stand.facing;
+      this.rememberActor(hs.id, a);
+      this.syncActorRect(hs);
+      if (done) done();
+      return;
+    }
+    this.npcMove = {
+      id: hs.id,
+      x0: a.x,
+      y0: a.y,
+      x1: stand.x,
+      y1: stand.y,
+      facing: stand.facing,
+      t: 0,
+      dur: 0.48,
+      after: done,
+    };
+  }
+
+  rememberActor(id, a) {
+    this.flags[id + "X"] = a.x;
+    this.flags[id + "Y"] = a.y;
+    this.flags[id + "Facing"] = a.facing;
+  }
+
+  initRoomActors() {
+    this.actors = {};
+    this.npcMove = null;
+    for (const hs of this.room()?.hotspots || []) {
+      if (hs.imageLeft || hs.imageRight) this.ensureActor(hs);
+    }
+  }
+
+  stepNpc(dt) {
+    const move = this.npcMove;
+    if (!move) return;
+    const hs = (this.room()?.hotspots || []).find((h) => h.id === move.id);
+    const a = hs && this.actors[move.id];
+    if (!a) {
+      this.npcMove = null;
+      if (move.after) move.after();
+      return;
+    }
+    move.t += dt;
+    const u = Math.min(1, move.t / move.dur);
+    const ease = 1 - (1 - u) * (1 - u);
+    a.x = move.x0 + (move.x1 - move.x0) * ease;
+    a.y = move.y0 + (move.y1 - move.y0) * ease;
+    this.syncActorRect(hs);
+    if (u < 1) return;
+    a.x = move.x1;
+    a.y = move.y1;
+    if (move.facing) a.facing = move.facing;
+    this.rememberActor(move.id, a);
+    this.syncActorRect(hs);
+    this.npcMove = null;
+    const fn = move.after;
+    if (fn) fn();
+  }
+
+  showTalkshot(who) {
+    const shot = this.root.querySelector("#talkshot");
+    if (!shot) return;
+    const src = this.world.portraits?.[who];
+    if (!src) {
+      shot.hidden = true;
+      this.talkWho = null;
+      return;
+    }
+    this.talkWho = who;
+    const img = shot.querySelector("#talkshot-img");
+    const name = shot.querySelector("#talkshot-name");
+    const held = this.img(src);
+    img.src = held?.src || `${src}?v=9`;
+    name.textContent = who === "russell" ? "Russell" : who === "annita" ? "Annita" : who;
+    shot.hidden = false;
+    this.root.querySelector("#speech")?.classList.add("with-shot");
+  }
+
+  hideTalkshot() {
+    const shot = this.root.querySelector("#talkshot");
+    if (shot) shot.hidden = true;
+    this.talkWho = null;
+    this.root.querySelector("#speech")?.classList.remove("with-shot");
+  }
+
   advanceSpeech() {
     const next = this.speech.shift();
     const box = this.root.querySelector("#speech");
     if (!next) {
       this.speechVisible = null;
       box.hidden = true;
+      this.hideTalkshot();
       this.busy = false;
       this.updateCursor();
       if (this.afterSpeech) {
@@ -534,10 +702,13 @@ export class Adventure {
       }
       return;
     }
-    this.speechVisible = next;
+    const line = typeof next === "string" ? { text: next } : next;
+    this.speechVisible = line.text;
     this.busy = true;
     box.hidden = false;
-    box.textContent = next;
+    box.textContent = line.text;
+    if (line.who) this.showTalkshot(line.who);
+    else if (!this.talkWho) this.hideTalkshot();
     this.updateCursor();
     this.updateStatus();
   }
@@ -598,6 +769,7 @@ export class Adventure {
         this.player.path = [];
         this.moving = false;
         this.pending = null;
+        this.initRoomActors();
         this.root.querySelector("#room-name").textContent = room.name;
         if (room.music) this.music.play(room.music);
         if (room.onEnter) room.onEnter(this);
@@ -702,8 +874,9 @@ export class Adventure {
           const base = this.img(hs.baseImage);
           if (base) ctx.drawImage(base, hs.baseRect[0], hs.baseRect[1], hs.baseRect[2], hs.baseRect[3]);
         }
-        if (!hs.image || !hs.rect) continue;
-        const im = this.img(hs.image);
+        const sprite = this.actorImage(hs);
+        if (!sprite || !hs.rect) continue;
+        const im = this.img(sprite);
         if (!im) continue;
         let ox = 0;
         if (this.shake && this.shake.id === hs.id && this.shake.t > 0) {
@@ -824,6 +997,8 @@ export class Adventure {
     this.pending = null;
     this.speech = [];
     this.speechVisible = null;
+    this.hideTalkshot();
+    this.initRoomActors();
     this.root.querySelector("#speech").hidden = true;
     this.root.querySelector("#room-name").textContent = this.room()?.name || "";
     this.renderInventory();
@@ -863,6 +1038,9 @@ export class Adventure {
     this.speechVisible = null;
     this.player.path = [];
     this.pending = null;
+    this.actors = {};
+    this.npcMove = null;
+    this.hideTalkshot();
     this.setVerb("walk");
     this.renderInventory();
   }
@@ -922,6 +1100,7 @@ export class Adventure {
       if (room.onEnter) room.onEnter(this);
     }
     const playing = this.room();
+    this.initRoomActors();
     if (playing?.music) this.music.play(playing.music);
     this.updateCursor();
     this.autosave();
@@ -946,6 +1125,7 @@ export class Adventure {
         if (this.shake.t <= 0) this.shake = null;
       }
       this.stepEmerge(dt);
+      this.stepNpc(dt);
       this.stepPlayer(dt);
       if (this.fadeDir !== 0) {
         this.fade += this.fadeDir * dt * 2.6;
