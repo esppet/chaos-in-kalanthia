@@ -119,7 +119,9 @@ export const world = {
           id: "fridge",
           name: "refrigerator door",
           image: "assets/items/fridge.png",
-          rect: [4, 214, 96, 112],
+          rect: [12, 208, 80, 100],
+          baseImage: "assets/items/fridge-rubble.png",
+          baseRect: [2, 218, 100, 108],
           approach: [176, 322],
           look: (game) =>
             game.flag("outOfFridge")

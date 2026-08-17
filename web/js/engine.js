@@ -111,6 +111,7 @@ export class Adventure {
       if (room.bg) paths.add(room.bg);
       for (const hs of room.hotspots || []) {
         if (hs.image) paths.add(hs.image);
+        if (hs.baseImage) paths.add(hs.baseImage);
       }
     }
     for (const item of Object.values(this.world.items)) {
@@ -670,17 +671,20 @@ export class Adventure {
       const bg = this.img(room.bg);
       if (bg) ctx.drawImage(bg, 0, 0, W, H);
       for (const hs of room.hotspots || []) {
-        if (!hs.image) continue;
         if (hs.visible && !hs.visible(this)) continue;
+        if (hs.baseImage && hs.baseRect) {
+          const base = this.img(hs.baseImage);
+          if (base) ctx.drawImage(base, hs.baseRect[0], hs.baseRect[1], hs.baseRect[2], hs.baseRect[3]);
+        }
+        if (!hs.image || !hs.rect) continue;
         const im = this.img(hs.image);
-        if (!im || !hs.rect) continue;
-        let ox = 0, oy = 0;
+        if (!im) continue;
+        let ox = 0;
         if (this.shake && this.shake.id === hs.id && this.shake.t > 0) {
           const k = this.shake.t / this.shake.dur;
           ox = Math.sin(this.shake.t * 70) * 3 * k;
-          oy = Math.cos(this.shake.t * 90) * 1.5 * k;
         }
-        ctx.drawImage(im, hs.rect[0] + ox, hs.rect[1] + oy, hs.rect[2], hs.rect[3]);
+        ctx.drawImage(im, hs.rect[0] + ox, hs.rect[1], hs.rect[2], hs.rect[3]);
       }
       this.drawPlayer(ctx);
       if (this.debug) this.drawDebug(ctx, room);
