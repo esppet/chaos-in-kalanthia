@@ -24,9 +24,12 @@ Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on this machine. From
 | Esc | Save / load / restart |
 | WASD or arrows | Walk |
 | Space or click | Advance dialogue |
+| M | Music on/off |
 | `?debug=1` | Show walkable floor and hotspots |
 
 Saves live in this browser (`localStorage`).
+
+The score is an MT-32 / Roland SC-55 style loop set (title, courtyard, command room) written for the colony's leftover-Sierra mood: slow pads, a lonely electric-piano figure, choir far off, and a colder pulse inside the bunker.
 
 ## Current playable slice
 

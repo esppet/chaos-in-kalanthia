@@ -1,4 +1,5 @@
 import { Adventure } from "./engine.js";
+import { Soundtrack } from "./music.js";
 import { world } from "./world.js";
 
 const game = new Adventure(document.getElementById("app"), world);

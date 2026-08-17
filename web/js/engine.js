@@ -5,6 +5,7 @@ import {
   polyContains,
   approachPoint,
 } from "./pathfind.js";
+import { Soundtrack } from "./music.js";
 
 export const W = 640;
 export const H = 360;
@@ -45,6 +46,7 @@ export class Adventure {
     this.onKey = this.onKey.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
     this.tick = this.tick.bind(this);
+    this.music = new Soundtrack();
   }
 
   room() {
@@ -128,10 +130,21 @@ export class Adventure {
       this.toggleMenu();
     });
     this.root.querySelector("#btn-begin")?.addEventListener("click", () => {
+      this.music.unlock();
       this.startIntro();
     });
     this.root.querySelector("#btn-continue")?.addEventListener("click", () => {
+      this.music.unlock();
       if (this.load()) this.enterPlay();
+    });
+    this.root.querySelectorAll("[data-music-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.music.toggle();
+        this.syncMusicButtons();
+      });
+    });
+    this.root.querySelector("#title")?.addEventListener("click", () => {
+      this.music.unlock();
     });
     this.root.querySelector("#btn-save")?.addEventListener("click", () => {
       this.save();
@@ -159,6 +172,7 @@ export class Adventure {
       this.root.querySelector("#endcard").hidden = true;
       this.mode = "title";
       this.root.querySelector("#title").hidden = false;
+      this.music.play("title");
       this.refreshContinue();
     });
     this.fit();
@@ -391,6 +405,10 @@ export class Adventure {
     if (ev.key === "3") this.setVerb("use");
     if (ev.key === "4") this.setVerb("talk");
     if (ev.key === "i" || ev.key === "I") this.toggleInventory();
+    if (ev.key === "m" || ev.key === "M") {
+      this.music.toggle();
+      this.syncMusicButtons();
+    }
     if (ev.key === "`") {
       this.debug = !this.debug;
     }
@@ -487,6 +505,7 @@ export class Adventure {
         this.moving = false;
         this.pending = null;
         this.root.querySelector("#room-name").textContent = room.name;
+        if (room.music) this.music.play(room.music);
         if (room.onEnter) room.onEnter(this);
         this.autosave();
       };
@@ -703,6 +722,7 @@ export class Adventure {
 
   startIntro() {
     this.reset();
+    this.music.play("title");
     this.mode = "intro";
     this.root.querySelector("#title").hidden = true;
     this.root.querySelector("#menu").hidden = true;
@@ -754,12 +774,15 @@ export class Adventure {
       this.root.querySelector("#room-name").textContent = room.name;
       if (room.onEnter) room.onEnter(this);
     }
+    const playing = this.room();
+    if (playing?.music) this.music.play(playing.music);
     this.updateCursor();
     this.autosave();
   }
 
   showEnd(title, body) {
     this.mode = "end";
+    this.music.play("title");
     this.root.querySelector("#hud").hidden = true;
     const el = this.root.querySelector("#endcard");
     el.hidden = false;
@@ -792,13 +815,23 @@ export class Adventure {
     requestAnimationFrame(this.tick);
   }
 
+  syncMusicButtons() {
+    const label = this.music.muted ? "Music: Off" : "Music: On";
+    this.root.querySelectorAll("[data-music-toggle]").forEach((btn) => {
+      btn.textContent = label;
+    });
+  }
+
   async start() {
     await this.loadImages();
+    if (this.world.music) await this.music.load(this.world.music);
     this.bind();
     this.refreshContinue();
     this.setVerb("walk");
+    this.syncMusicButtons();
     this.root.querySelector("#boot").hidden = true;
     this.root.querySelector("#title").hidden = false;
+    this.music.play("title");
     requestAnimationFrame(this.tick);
   }
 }

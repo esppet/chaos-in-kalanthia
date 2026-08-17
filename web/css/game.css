@@ -320,6 +320,21 @@ body,
   cursor: default;
 }
 
+button.ghost,
+#title button.ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--line);
+  min-width: 140px;
+  font: 18px VT323, monospace;
+  padding: 4px 12px 2px;
+  cursor: pointer;
+}
+
+#title button.ghost {
+  margin-top: 8px;
+}
+
 #intro {
   background: #050308;
   align-content: center;

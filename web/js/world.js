@@ -2,6 +2,11 @@
 
 export const world = {
   startRoom: "base-exterior",
+  music: {
+    title: "assets/music/title.ogg",
+    courtyard: "assets/music/courtyard.ogg",
+    command: "assets/music/command.ogg",
+  },
   intro: [
     "Kalanthia. Off-world colony.",
     "A meteor strike has shattered the surface.",
@@ -24,6 +29,7 @@ export const world = {
     "base-exterior": {
       name: "Military Base — Courtyard",
       bg: "assets/rooms/base-exterior.png",
+      music: "courtyard",
       start: { x: 360, y: 318, dir: "right" },
       scaleTop: [230, 0.52],
       scaleBot: [350, 0.78],
@@ -135,6 +141,7 @@ export const world = {
     "base-interior": {
       name: "Military Base — Command",
       bg: "assets/rooms/base-interior.png",
+      music: "command",
       start: { x: 168, y: 318, dir: "right" },
       scaleTop: [250, 0.62],
       scaleBot: [350, 0.88],
