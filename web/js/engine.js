@@ -155,7 +155,7 @@ export class Adventure {
               resolve();
             };
             img.onerror = () => reject(new Error("Failed to load " + src));
-            img.src = src.includes("?") ? src : `${src}?v=7`;
+            img.src = src.includes("?") ? src : `${src}?v=8`;
           })
       )
     );

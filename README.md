@@ -39,7 +39,8 @@ Intro → military base courtyard → command room → street at Zero.
 2. Force the **blast door**
 3. Read the **command terminal** — Zero is collapsing; Annita's son Robert is still inside; the hangar ship needs three parts
 4. Take the **road to town** to stand under Apartment Building Zero
-5. The lobby is open. The ten-minute clock starts when you go in — not yet.
+5. Talk to **Annita** at the lobby doors. Robert is still on the upper floors
+6. The lobby is open. The ten-minute clock starts when you go in — not yet.
 
 Full story, room map, and endings: [docs/DESIGN.md](docs/DESIGN.md)
 

@@ -267,7 +267,7 @@ export const world = {
           game.setFlag("seenZeroStreet");
           game.say([
             "There it is. Zero. The log didn't smell like this.",
-            "Upper floors still standing. For now.",
+            "Someone's still standing by the doors.",
           ]);
         }
       },
@@ -362,6 +362,22 @@ export const world = {
           talk: "Robert! ... Nothing. Either he can't hear me, or I don't want to know.",
           take: (game) => game.say("I'll take the whole lobby if I have to. After I find a way up."),
         },
+        {
+          id: "annita",
+          name: "Annita",
+          image: "assets/sprites/annita-right.png",
+          rect: [356, 178, 72, 100],
+          approach: [360, 290],
+          look: (game) =>
+            game.flag("talkedToAnnita")
+              ? "Annita. Ash in her hair. She's not leaving until Robert comes out."
+              : "A woman by the doors. She's been shouting at the tower until her voice went.",
+          use: (game) =>
+            game.say("She doesn't need a crowbar. She needs someone who can walk into that."),
+          take: (game) => game.say("I'm not carrying her. Her kid's still inside."),
+          talk: (game) => talkAnnita(game),
+          walk: (game) => talkAnnita(game),
+        },
       ],
     },
   },
@@ -422,7 +438,24 @@ function leaveZeroStreet(game) {
   game.changeRoom("base-exterior", { x: 220, y: 268, dir: "down" });
 }
 
+function talkAnnita(game) {
+  if (game.flag("talkedToAnnita")) {
+    game.say("Every minute the stairs get worse. Please.");
+    return;
+  }
+  game.setFlag("talkedToAnnita");
+  game.say([
+    "You. Military. Please.",
+    "My boy is still up there. Robert. Top floors.",
+    "The smoke turned me back. I can't reach him.",
+  ]);
+}
+
 function tryZeroDoors(game) {
+  if (!game.flag("talkedToAnnita")) {
+    game.say("Someone's at the doors. I should hear her first.");
+    return;
+  }
   game.say([
     "The lobby's open. Stairs in the dark.",
     "The second I go in, that ten-minute clock starts. Not yet.",

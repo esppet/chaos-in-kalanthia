@@ -200,6 +200,7 @@ def main() -> None:
         "russell-up-walk": "russell-up-walk.jpg",
         "russell-right-walk": "russell-right-walk.jpg",
         "russell-emerge": "russell-emerge.jpg",
+        "annita-right": "annita-right.jpg",
     }
     sprites = {name: normalize_sprite(Image.open(src_dir / src)) for name, src in mapping.items()}
     for name, im in sprites.items():
