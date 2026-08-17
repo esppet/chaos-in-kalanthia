@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SF2 = Path("/usr/share/scummvm/Roland_SC-55.sf2")
 OUT = ROOT / "web" / "assets" / "music"
 SR = 22050
-ARCHIVE = "v5-tense"
+ARCHIVE = "v6-computer"
 
 # GM programs — dry, no choir, no brass, no slap-bass dance kit.
 FINGER_BASS = 33
@@ -30,16 +30,20 @@ TIMPANI = 47
 MUTED_GTR = 28
 SQUARE = 80
 SAW_LEAD = 81
+CELESTA = 8
 CRYSTAL = 98
 ATMOS = 99
+SCI_FI = 103
 
-KICK, RIM, SNARE, TOM_LO, TOM_FL, CHH, WOOD = 36, 37, 38, 41, 43, 42, 76
+KICK, RIM, SNARE, TOM_LO, TOM_FL, CHH, WOOD, CLAVE = 36, 37, 38, 41, 43, 42, 76, 75
 
+Gs0, Cs1 = 20, 25
 Gs1, A1, B1 = 32, 33, 35
 Cs2, D2, Ds2, E2, Fs2, Gs2, A2, B2 = 37, 38, 39, 40, 42, 44, 45, 47
 Cs3, D3, Ds3, E3, Fs3, Gs3, A3, B3 = 49, 50, 51, 52, 54, 56, 57, 59
 Cs4, D4, Ds4, E4, Fs4, Gs4, A4, B4 = 61, 62, 63, 64, 66, 68, 69, 71
-Cs5, D5, Ds5, E5, Fs5, Gs5 = 73, 74, 75, 76, 78, 80
+Cs5, D5, Ds5, E5, Fs5, Gs5, A5 = 73, 74, 75, 76, 78, 80, 81
+Cs6, D6, E6, Gs6, C7 = 85, 86, 88, 92, 96
 
 
 class Seq:
@@ -219,49 +223,78 @@ def courtyard_cue() -> tuple[Seq, int]:
 
 
 def command_cue() -> tuple[Seq, int]:
-    """Inside: steal the log. Fluorescent pressure, not a chase theme."""
-    bpm = 96
+    """Command computer: PSU hum, CRT whine, modem tones, data chatter."""
+    bpm = 88
     s = Seq(bpm)
     bars = 16
     s.setup(
-        {0: CRYSTAL, 1: FINGER_BASS, 2: SQUARE, 3: TIMPANI, 5: ATMOS, 6: STRINGS},
-        {0: 40, 2: 70, 5: 54, 6: 46},
+        {0: CRYSTAL, 1: SYNTH_BASS, 2: SQUARE, 3: SCI_FI, 4: CELESTA, 5: ATMOS},
+        {0: 48, 2: 70, 3: 58, 4: 80, 5: 40},
     )
-    s.cc(0, 9, 7, 88)
-    s.cc(0, 5, 7, 70)
-    heartbeat(s, bars, drag=0.1)
-    rim_clock(s, bars, eighths=False)
+    s.cc(0, 9, 7, 64)
+    s.cc(0, 1, 7, 88)
+    s.cc(0, 2, 7, 78)
+    s.cc(0, 5, 7, 52)
 
-    pedal_bass(
-        s,
-        bars,
-        [(Cs2, Cs2), (Cs2, Cs2), (D2, Cs2), (Gs1, A1)],
-    )
-
-    # Terminal cursor. Off-beats only.
+    # Power supply + fan. Never rests.
     for bar in range(bars):
-        s.note(bar * 4 + 0.75, 0.08, 0, Gs5, 36)
-        s.note(bar * 4 + 1.75, 0.08, 0, E5, 28)
-        s.note(bar * 4 + 2.75, 0.08, 0, Cs5, 32)
-        s.note(bar * 4 + 3.5, 0.06, 0, Gs4, 22)
+        s.note(bar * 4, 3.96, 1, Cs1, 62)
+        s.note(bar * 4, 3.96, 1, Gs1, 38)
+        if bar % 4 >= 2:
+            s.note(bar * 4, 3.96, 1, D2, 22)
 
-    # Fluorescent buzz — two pitches that never resolve.
+    # CRT flyback. Thin, high, always on.
     for bar in range(0, bars, 4):
-        s.note(bar * 4, 3.6, 5, Gs3, 26)
-        s.note(bar * 4 + 4, 3.6, 5, A3, 24)
+        s.note(bar * 4, 15.8, 2, C7, 11)
+        s.note(bar * 4, 15.8, 5, Cs3, 16)
 
-    # Square ticks that tighten in the last four bars.
+    # Cursor blink on the beat, then a dimmer echo.
     for bar in range(bars):
-        rate = 8 if bar < 12 else 16
-        for i in range(rate):
-            if i % 2:
-                continue
-            s.note(bar * 4 + i * (4 / rate), 0.05, 2, Cs5 if bar < 12 else D5, 18 if bar < 12 else 22)
+        s.note(bar * 4, 0.07, 2, Gs5, 32)
+        s.note(bar * 4 + 2.0, 0.04, 2, Gs5, 14)
+        s.note(bar * 4, 0.04, 9, CLAVE, 24)
 
-    s.chord(4 * 4, 7.4, 6, [Cs3, Gs3], 16)
-    s.chord(12 * 4, 7.4, 6, [D3, Gs3], 18)
-    impact(s, 7 * 4 + 3.6)
-    impact(s, 15 * 4 + 3.5)
+    packets = (
+        (Cs5, E5, Gs5, Cs6, Gs5, E5),
+        (D5, Gs5, D6, A5, Gs5),
+        (E5, E5, Cs5, Gs5, Cs6, E5, Gs4),
+        (Gs5, D5, Cs6, Gs5, D5),
+        (Cs6, Gs5, E5, Cs5, E5, Gs5, Cs6, E6),
+        (D5, D5, Gs4, D5),
+        (E6, Cs6, Gs5, E5, Cs5),
+        (Gs5, A5, Gs5, D5, Cs5),
+    )
+    for bar in range(bars):
+        if bar % 4 == 3:
+            continue
+        cell = packets[bar % len(packets)]
+        t0 = 0.45 if bar % 2 == 0 else 1.15
+        for i, pitch in enumerate(cell):
+            s.note(bar * 4 + t0 + i * 0.085, 0.06, 0, pitch, 40 if i == 0 else 24)
+
+    # Modem handshake — two-tone, not a melody.
+    for bar in (0, 8):
+        s.note(bar * 4 + 2.85, 0.32, 2, A4, 30)
+        s.note(bar * 4 + 2.85, 0.32, 2, E5, 26)
+        s.note(bar * 4 + 3.25, 0.42, 2, Gs4, 28)
+        s.note(bar * 4 + 3.25, 0.42, 2, D5, 24)
+
+    # Ready / error beeps.
+    for bar in (2, 6, 10, 14):
+        s.note(bar * 4 + 3.15, 0.07, 4, Cs6, 36)
+        s.note(bar * 4 + 3.38, 0.11, 4, Gs5 if bar != 10 else D5, 30)
+
+    # Drive seek.
+    for bar in (4, 12):
+        walk = (E4, D4, Cs4, B3, A3, Gs3) if bar == 4 else (Gs3, A3, Cs4, D4, Gs4, D4)
+        for i, pitch in enumerate(walk):
+            s.note(bar * 4 + 0.08 + i * 0.10, 0.07, 3, pitch, 28)
+
+    # Head chatter.
+    for bar in (1, 5, 9, 13):
+        for i in range(6):
+            s.note(bar * 4 + 2.15 + i * 0.07, 0.04, 9, WOOD, 16 + (i % 2) * 8)
+
     return s, bars * 4
 
 
@@ -343,11 +376,18 @@ def main() -> None:
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     archive = OUT / "archive" / ARCHIVE
     archive.mkdir(parents=True, exist_ok=True)
-    for name, builder in {
+    cues = {
         "title": title_cue,
         "courtyard": courtyard_cue,
         "command": command_cue,
-    }.items():
+    }
+    wanted = set(sys.argv[1:] or cues)
+    unknown = wanted - set(cues)
+    if unknown:
+        sys.exit(f"Unknown cue(s): {', '.join(sorted(unknown))}")
+    for name, builder in cues.items():
+        if name not in wanted:
+            continue
         print(f"composing {name}...")
         seq, beats = builder()
         audio = render(seq, beats)
@@ -360,7 +400,12 @@ def main() -> None:
         subprocess.run(
             [
                 ffmpeg, "-y", "-i", str(ogg),
-                "-af", "loudnorm=I=-17:TP=-1.5:LRA=9,aresample=22050",
+                "-af",
+                (
+                    "loudnorm=I=-19:TP=-2.0:LRA=11,aresample=22050"
+                    if name == "command"
+                    else "loudnorm=I=-17:TP=-1.5:LRA=9,aresample=22050"
+                ),
                 "-c:a", "libvorbis", "-q:a", "4", str(norm),
             ],
             check=True,

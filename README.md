@@ -29,7 +29,7 @@ Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on this machine. From
 
 Saves live in this browser (`localStorage`).
 
-The score is an MT-32 / Roland SC-55 loop set (title, courtyard, command). Current pass is a countdown pulse — heartbeat kick, rim clock, no four-on-the-floor, no brass. Earlier versions live in `web/assets/music/archive/`.
+The score is an MT-32 / Roland SC-55 loop set (title, courtyard, command). Courtyard is a countdown pulse. The command room is computer-room ambience — PSU hum, CRT, modem tones. Earlier versions live in `web/assets/music/archive/`.
 
 ## Current playable slice
 

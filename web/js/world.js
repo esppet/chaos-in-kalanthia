@@ -5,7 +5,7 @@ export const world = {
   music: {
     title: "assets/music/title.ogg?v=5",
     courtyard: "assets/music/courtyard.ogg?v=5",
-    command: "assets/music/command.ogg?v=5",
+    command: "assets/music/command.ogg?v=6",
   },
   intro: [
     "Kalanthia. Off-world colony.",
