@@ -15,6 +15,9 @@ dist/
 # Local playable snapshots (scripts/backup-web.sh)
 backups/
 
+# Personal reference photos
+bilder/
+
 # OS / editor
 .DS_Store
 Thumbs.db

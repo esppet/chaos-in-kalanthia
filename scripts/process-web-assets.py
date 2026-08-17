@@ -191,15 +191,17 @@ def main() -> None:
             save(pixelate_room(Image.open(zero_src)), OUT / "rooms" / "zero-street.png")
 
     print("Sprites")
+    src_dir = OUT / "_src"
     mapping = {
-        "russell-down": "11.jpg",
-        "russell-up": "12.jpg",
-        "russell-right": "13.jpg",
-        "russell-down-walk": "14.jpg",
-        "russell-up-walk": "15.jpg",
-        "russell-right-walk": "16.jpg",
+        "russell-down": "russell-down.jpg",
+        "russell-up": "russell-up.jpg",
+        "russell-right": "russell-right.jpg",
+        "russell-down-walk": "russell-down-walk.jpg",
+        "russell-up-walk": "russell-up-walk.jpg",
+        "russell-right-walk": "russell-right-walk.jpg",
+        "russell-emerge": "russell-emerge.jpg",
     }
-    sprites = {name: normalize_sprite(Image.open(SRC / src)) for name, src in mapping.items()}
+    sprites = {name: normalize_sprite(Image.open(src_dir / src)) for name, src in mapping.items()}
     for name, im in sprites.items():
         save(im, OUT / "sprites" / f"{name}.png")
     save(flip_h(sprites["russell-right"]), OUT / "sprites" / "russell-left.png")
