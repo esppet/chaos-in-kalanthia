@@ -11,6 +11,22 @@ import { CommandTerm } from "./terminal.js";
 export const W = 640;
 export const H = 360;
 export const SAVE_KEY = "chaos-in-kalanthia-save";
+// Bump this whenever the save shape changes (new required field, renamed
+// room, etc). Old saves are discarded cleanly instead of being force-fed
+// into apply() and producing an undefined-room / broken-state game.
+export const SAVE_VERSION = 1;
+
+/** Pure so it can be unit tested without a DOM. */
+export function isCompatibleSave(data, world) {
+  if (!data || typeof data !== "object") return false;
+  if (data.version !== SAVE_VERSION) return false;
+  if (typeof data.roomId !== "string" || !world.rooms[data.roomId]) return false;
+  if (!Array.isArray(data.inventory)) return false;
+  if (!data.flags || typeof data.flags !== "object") return false;
+  const p = data.player;
+  if (!p || typeof p.x !== "number" || typeof p.y !== "number") return false;
+  return true;
+}
 
 export class Adventure {
   constructor(root, world) {
@@ -153,20 +169,30 @@ export class Adventure {
     for (const src of Object.values(this.world.portraits || {})) {
       if (src) paths.add(src);
     }
+    const failed = [];
     await Promise.all(
       [...paths].map(
         (src) =>
-          new Promise((resolve, reject) => {
+          new Promise((resolve) => {
             const img = new Image();
             img.onload = () => {
               this.images.set(src, img);
               resolve();
             };
-            img.onerror = () => reject(new Error("Failed to load " + src));
+            img.onerror = () => {
+              failed.push(src);
+              resolve();
+            };
             img.src = src.includes("?") ? src : `${src}?v=9`;
           })
       )
     );
+    if (failed.length) {
+      // A missing/renamed asset shouldn't take the whole game down at boot.
+      // Draw calls already guard on img(src) being undefined; this just
+      // makes that the only consequence instead of a hard boot failure.
+      console.warn("Missing assets (continuing without them):", failed);
+    }
   }
 
   img(src) {
@@ -973,6 +999,7 @@ export class Adventure {
 
   snapshot() {
     return {
+      version: SAVE_VERSION,
       roomId: this.roomId,
       player: { x: this.player.x, y: this.player.y, dir: this.player.dir },
       inventory: [...this.inventory],
@@ -1017,12 +1044,21 @@ export class Adventure {
   load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
+    let data;
     try {
-      this.apply(JSON.parse(raw));
-      return true;
+      data = JSON.parse(raw);
     } catch {
       return false;
     }
+    if (!isCompatibleSave(data, this.world)) {
+      // Stale shape from an older build, or corrupted. Drop it rather than
+      // risk apply() leaving the game in a half-initialized state.
+      localStorage.removeItem(SAVE_KEY);
+      this.refreshContinue();
+      return false;
+    }
+    this.apply(data);
+    return true;
   }
 
   refreshContinue() {
