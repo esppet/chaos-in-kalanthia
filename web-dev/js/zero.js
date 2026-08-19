@@ -116,6 +116,20 @@ function hallTemplate(n) {
         rect: [180, 300, 280, 48],
         look: `Floor ${n}. Same cracks. Same heat. Same bad idea.`,
       },
+      ...(n === 2
+        ? [
+            {
+              id: "robert-wait",
+              name: "Robert",
+              rect: [316, 228, 48, 80],
+              approach: [300, 310],
+              visible: (game) => game.flags.robertParked === "zero-floor-2",
+              look: "He waits by the door. The lab smell is enough.",
+              talk: "I'll be right here.",
+              use: (game) => game.say("He's fine. He's waiting."),
+            },
+          ]
+        : []),
     ],
   };
   return room;
@@ -198,15 +212,21 @@ function useSpecialDoor(game, n, item) {
     return;
   }
   if (n === 2) {
-    if (game.flag("aptUnlocked")) {
+    const enter = () => {
+      if (game.flags.robertFollowing) {
+        game.parkFollower("zero-floor-2", { x: 340, y: 308, dir: "left" });
+      }
       game.changeRoom("zero-lab", { x: 168, y: 318, dir: "right" });
+    };
+    if (game.flag("aptUnlocked")) {
+      enter();
       return;
     }
     if (item === "aptKey" || game.activeItem === "aptKey") {
       game.setFlag("aptUnlocked");
       game.activeItem = null;
       game.say("The brass key fits. Whoever ran this lab didn't want visitors.");
-      game.changeRoom("zero-lab", { x: 168, y: 318, dir: "right" });
+      enter();
       return;
     }
     game.say("Locked from a better key than the soot one. Different teeth.");
@@ -253,10 +273,14 @@ function takePart(game, id, line) {
 
 function talkRobert(game) {
   if (game.flag("robertRescued")) {
-    game.say("He nods at the horizon. He isn't going near the edge.");
+    game.say(game.flags.robertParked ? "I'll be right here." : "I'm right behind you.");
     return;
   }
   game.setFlag("robertRescued");
+  game.afterSpeech = () => {
+    game.startFollow();
+    game.say("He falls in behind me. Small steps. Fast.");
+  };
   game.converse({
     actor: "robert",
     playerStand: { x: 300, y: 318, dir: "right" },
@@ -265,7 +289,7 @@ function talkRobert(game) {
       { who: "robert", text: "You're military. Mum said not to open for anyone." },
       { who: "russell", text: "Your mum is downstairs. She sent me." },
       { who: "robert", text: "The stairs were on fire. I came up." },
-      { who: "russell", text: "Stay off the edge. I'll get you down." },
+      { who: "russell", text: "Stay with me. Off the edge." },
     ],
   });
 }
@@ -279,8 +303,8 @@ function talkAnnitaAfter(game) {
       actorStand: { x: 400, y: 290, facing: "left" },
       lines: [
         { who: "annita", text: "Robert—" },
-        { who: "russell", text: "On the roof. He's waiting. The stairs still hold." },
-        { who: "annita", text: "Bring him. I'll be here." },
+        { who: "russell", text: "He's with me. We need to get out." },
+        { who: "annita", text: "Thank you. Thank you." },
       ],
     });
     return true;
@@ -464,6 +488,7 @@ export function attachZero(world) {
         meet: true,
         rect: [344, 220, 48, 80],
         approach: [300, 318],
+        visible: (game) => !game.flag("robertFollowing"),
         look: (game) =>
           game.flag("robertRescued")
             ? "Annita's boy. He's staying off the edge. Smarter than the building."
@@ -494,7 +519,11 @@ export function attachZero(world) {
     onEnter(game) {
       if (!game.flag("seenLab")) {
         game.setFlag("seenLab");
-        game.say("A lab pretending to be a home. Or the other way around. The ship's organs are here.");
+        game.say(
+          game.flags.robertParked
+            ? "Robert waits in the hall. A lab pretending to be a home. The ship's organs are here."
+            : "A lab pretending to be a home. Or the other way around. The ship's organs are here."
+        );
       }
     },
     hotspots: [

@@ -71,6 +71,8 @@ export class Adventure {
     this.actors = {};
     this.npcMove = null;
     this.talkWho = null;
+    this.companion = null;
+    this.collapseT = 0;
   }
 
   trapped() {
@@ -181,7 +183,7 @@ export class Adventure {
       this.autosave();
     }
     this.updateClock();
-    if (left <= 0) this.die("Zero comes down", "The megacomplex folds. You do not get a second fridge.");
+    if (left <= 0) this.startCollapse();
   }
 
   updateClock() {
@@ -208,6 +210,132 @@ export class Adventure {
     this.showEnd(title, body);
   }
 
+  startCollapse() {
+    if (this.mode === "collapse" || this.mode === "end") return;
+    this.flags.zeroLeft = 0;
+    this.hideTalkshot();
+    this.speech = [];
+    this.speechVisible = null;
+    this.root.querySelector("#speech").hidden = true;
+    this.root.querySelector("#hud").hidden = true;
+    this.music.stop();
+    this.mode = "collapse";
+    this.collapseT = 0;
+    this.updateClock();
+  }
+
+  startFollow() {
+    this.flags.robertFollowing = true;
+    this.flags.robertParked = null;
+    this.companion = {
+      x: this.player.x - 26,
+      y: this.player.y + 4,
+      dir: this.player.dir,
+      trail: [],
+    };
+    this.autosave();
+  }
+
+  parkFollower(roomId, pos) {
+    this.flags.robertParked = roomId;
+    this.flags.robertParkX = pos.x;
+    this.flags.robertParkY = pos.y;
+    this.flags.robertParkDir = pos.dir || "left";
+    if (!this.companion) this.companion = { trail: [] };
+    this.companion.x = pos.x;
+    this.companion.y = pos.y;
+    this.companion.dir = pos.dir || "left";
+    this.companion.trail = [];
+    this.autosave();
+  }
+
+  resumeFollow() {
+    if (!this.flags.robertFollowing) return;
+    this.flags.robertParked = null;
+    if (this.companion) this.companion.trail = [];
+    this.autosave();
+  }
+
+  restoreCompanion() {
+    if (!this.flags.robertFollowing) {
+      this.companion = null;
+      return;
+    }
+    this.companion = {
+      x: this.flags.robertParkX || this.player.x - 26,
+      y: this.flags.robertParkY || this.player.y,
+      dir: this.flags.robertParkDir || this.player.dir,
+      trail: [],
+    };
+  }
+
+  placeCompanionNearPlayer() {
+    if (!this.companion) this.restoreCompanion();
+    if (!this.companion) return;
+    const back = this.player.dir === "right" ? -28 : this.player.dir === "left" ? 28 : 0;
+    const yoff = this.player.dir === "up" ? 14 : this.player.dir === "down" ? -10 : 6;
+    const room = this.room();
+    const dest = nearestOnPoly(this.player.x + back, this.player.y + yoff, room.walkable, 4);
+    this.companion.x = dest.x;
+    this.companion.y = dest.y;
+    this.companion.dir = this.player.dir;
+    this.companion.trail = [];
+  }
+
+  companionInRoom() {
+    if (!this.flags.robertFollowing) return false;
+    if (this.roomId === "zero-lab") return false;
+    return true;
+  }
+
+  stepCompanion() {
+    if (!this.companionInRoom()) return;
+    if (this.flags.robertParked === this.roomId) {
+      const dx = this.player.x - (this.flags.robertParkX || 0);
+      const dy = this.player.y - (this.flags.robertParkY || 0);
+      if (this.moving && dx * dx + dy * dy > 72 * 72) this.resumeFollow();
+      else return;
+    }
+    if (!this.companion) this.restoreCompanion();
+    const c = this.companion;
+    c.trail.push({ x: this.player.x, y: this.player.y, dir: this.player.dir });
+    if (c.trail.length > 48) c.trail.shift();
+    const lag = 16;
+    const sample = c.trail[Math.max(0, c.trail.length - 1 - lag)];
+    if (!sample) return;
+    c.dir = sample.dir;
+    c.x += (sample.x - c.x) * 0.35;
+    c.y += (sample.y - c.y) * 0.35;
+  }
+
+  drawCompanion(ctx) {
+    if (!this.companionInRoom() || !this.companion) return;
+    const c = this.companion;
+    if (this.flags.robertParked === this.roomId) {
+      c.x = this.flags.robertParkX;
+      c.y = this.flags.robertParkY;
+      c.dir = this.flags.robertParkDir || "left";
+    }
+    const facing = c.dir === "left" || c.dir === "right" ? c.dir : "down";
+    const im =
+      this.img(`assets/sprites/robert-${facing}.png`) || this.img("assets/sprites/robert-down.png");
+    if (!im) return;
+    const room = this.room();
+    const [y0, s0] = room.scaleTop || [220, 0.62];
+    const [y1, s1] = room.scaleBot || [350, 1.02];
+    const t = Math.max(0, Math.min(1, (c.y - y0) / (y1 - y0 || 1)));
+    const scale = (s0 + (s1 - s0) * t) * 0.68;
+    const w = im.width * scale;
+    const h = im.height * scale;
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.32)";
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y - 2, w * 0.26, 4 * scale, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.drawImage(im, c.x - w / 2, c.y - h, w, h);
+    ctx.restore();
+  }
+
   async loadImages() {
     const paths = new Set();
     for (const room of Object.values(this.world.rooms)) {
@@ -230,6 +358,10 @@ export class Adventure {
     for (const src of Object.values(this.world.portraits || {})) {
       if (src) paths.add(src);
     }
+    paths.add("assets/rooms/zero-collapse.png");
+    for (const dir of ["down", "left", "right"]) {
+      paths.add(`assets/sprites/robert-${dir}.png`);
+    }
     const failed = [];
     await Promise.all(
       [...paths].map(
@@ -244,7 +376,7 @@ export class Adventure {
               failed.push(src);
               resolve();
             };
-            img.src = src.includes("?") ? src : `${src}?v=10`;
+            img.src = src.includes("?") ? src : `${src}?v=11`;
           })
       )
     );
@@ -857,6 +989,16 @@ export class Adventure {
         this.moving = false;
         this.pending = null;
         this.initRoomActors();
+        if (this.flags.robertFollowing) {
+          if (id === "zero-lab") {
+            /* parked in the hall */
+          } else if (this.flags.robertParked && this.flags.robertParked !== id) {
+            this.resumeFollow();
+            this.placeCompanionNearPlayer();
+          } else if (!this.flags.robertParked) {
+            this.placeCompanionNearPlayer();
+          }
+        }
         this.root.querySelector("#room-name").textContent = room.name;
         if (room.music) this.music.play(room.music);
         if (room.onEnter) room.onEnter(this);
@@ -951,6 +1093,23 @@ export class Adventure {
     const ctx = this.ctx;
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, W, H);
+    if (this.mode === "collapse") {
+      const still = this.img("assets/rooms/zero-collapse.png");
+      const amp = 5 + this.collapseT * 7;
+      const ox = Math.sin(this.collapseT * 38) * amp;
+      const oy = Math.cos(this.collapseT * 29) * amp * 0.55;
+      ctx.save();
+      ctx.translate(ox, oy);
+      if (still) ctx.drawImage(still, 0, 0, W, H);
+      else {
+        ctx.fillStyle = "#1a0a06";
+        ctx.fillRect(-20, -20, W + 40, H + 40);
+      }
+      ctx.restore();
+      ctx.fillStyle = `rgba(8, 4, 2, ${Math.min(0.55, this.collapseT * 0.16)})`;
+      ctx.fillRect(0, 0, W, H);
+      return;
+    }
     const room = this.room();
     if (room) {
       const bg = this.img(room.bg);
@@ -972,7 +1131,10 @@ export class Adventure {
         }
         ctx.drawImage(im, hs.rect[0] + ox, hs.rect[1], hs.rect[2], hs.rect[3]);
       }
+      const kidBack = this.companion && this.companion.y < this.player.y;
+      if (kidBack) this.drawCompanion(ctx);
       this.drawPlayer(ctx);
+      if (!kidBack) this.drawCompanion(ctx);
       if (this.debug) this.drawDebug(ctx, room);
     }
     if (this.fade > 0) {
@@ -1087,6 +1249,7 @@ export class Adventure {
     this.speechVisible = null;
     this.hideTalkshot();
     this.initRoomActors();
+    this.restoreCompanion();
     this.root.querySelector("#speech").hidden = true;
     this.root.querySelector("#room-name").textContent = this.room()?.name || "";
     this.renderInventory();
@@ -1138,6 +1301,7 @@ export class Adventure {
     this.pending = null;
     this.actors = {};
     this.npcMove = null;
+    this.companion = null;
     this.hideTalkshot();
     this.setVerb("walk");
     this.renderInventory();
@@ -1218,6 +1382,15 @@ export class Adventure {
   tick(now) {
     const dt = Math.min(0.05, (now - this.last) / 1000 || 0.016);
     this.last = now;
+    if (this.mode === "collapse") {
+      this.collapseT += dt;
+      this.draw();
+      if (this.collapseT >= 3.3) {
+        this.showEnd("Zero comes down", "The megacomplex folds. You do not get a second fridge.");
+      }
+      requestAnimationFrame(this.tick);
+      return;
+    }
     if (this.mode === "play") {
       if (this.shake) {
         this.shake.t -= dt;
@@ -1226,6 +1399,7 @@ export class Adventure {
       this.stepEmerge(dt);
       this.stepNpc(dt);
       this.stepPlayer(dt);
+      this.stepCompanion();
       this.stepZeroClock(dt);
       if (this.fadeDir !== 0) {
         this.fade += this.fadeDir * dt * 2.6;

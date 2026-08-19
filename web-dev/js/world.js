@@ -396,7 +396,8 @@ export const world = {
           image: "assets/sprites/robert-down.png",
           rect: [300, 208, 40, 68],
           approach: [300, 292],
-          visible: (game) => game.flag("robertRescued") && game.flag("annitaReunited"),
+          visible: (game) =>
+            game.flag("robertRescued") && game.flag("annitaReunited") && !game.flag("robertFollowing"),
           look: "He came down. He's staying next to her. Good instinct.",
           talk: "He doesn't have much to say. The roof already used it up.",
         },
