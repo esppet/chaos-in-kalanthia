@@ -186,9 +186,10 @@ def main() -> None:
         print("Rooms")
         save(pixelate_room(Image.open(SRC / "2.jpg")), OUT / "rooms" / "base-exterior.png")
         save(pixelate_room(Image.open(SRC / "7.jpg")), OUT / "rooms" / "base-interior.png")
-        zero_src = OUT / "_src" / "zero-street.jpg"
-        if zero_src.exists():
-            save(pixelate_room(Image.open(zero_src)), OUT / "rooms" / "zero-street.png")
+        for name in ("zero-street", "zero-lobby", "zero-hall", "zero-roof", "zero-lab"):
+            src = OUT / "_src" / f"{name}.jpg"
+            if src.exists():
+                save(pixelate_room(Image.open(src)), OUT / "rooms" / f"{name}.png")
 
     print("Sprites")
     src_dir = OUT / "_src"
@@ -201,6 +202,7 @@ def main() -> None:
         "russell-right-walk": "russell-right-walk.jpg",
         "russell-emerge": "russell-emerge.jpg",
         "annita-right": "annita-right.jpg",
+        "robert-down": "robert-down.jpg",
     }
     sprites = {name: normalize_sprite(Image.open(src_dir / src)) for name, src in mapping.items()}
     for name, im in sprites.items():

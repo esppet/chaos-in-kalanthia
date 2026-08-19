@@ -39,8 +39,11 @@ Intro → military base courtyard → command room → street at Zero.
 2. Force the **blast door**
 3. Read the **command terminal** — Zero is collapsing; Annita's son Robert is still inside; the hangar ship needs three parts
 4. Take the **road to town** to stand under Apartment Building Zero
-5. Talk to **Annita** at the lobby doors. Robert is still on the upper floors
-6. The lobby is open. The ten-minute clock starts when you go in — not yet.
+5. Talk to **Annita**, then enter the lobby — a **ten-minute clock** starts
+6. Do not take the elevator. Climb ten identical floors
+7. Floor 2 hides a soot-black **service key**. Floor 10's roof door needs it
+8. On the roof: **Robert**, the burning colony, and a hidden **brass key**
+9. The brass key opens apartment 2 — a lab with the three ship parts
 
 Full story, room map, and endings: [docs/DESIGN.md](docs/DESIGN.md)
 

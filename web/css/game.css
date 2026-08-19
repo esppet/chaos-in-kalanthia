@@ -142,6 +142,22 @@ body,
   letter-spacing: 0.04em;
 }
 
+#zero-clock {
+  align-self: center;
+  min-width: 52px;
+  padding: 2px 8px 0;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--amber);
+  border: 1px solid #6a4a22;
+  background: #120c08;
+}
+
+#zero-clock.urgent {
+  color: #f0c0c0;
+  border-color: #a03030;
+}
+
 #status {
   min-height: 18px;
   padding: 0 8px 2px;

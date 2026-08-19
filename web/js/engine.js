@@ -15,6 +15,7 @@ export const SAVE_KEY = "chaos-in-kalanthia-save";
 // room, etc). Old saves are discarded cleanly instead of being force-fed
 // into apply() and producing an undefined-room / broken-state game.
 export const SAVE_VERSION = 1;
+export const ZERO_SECONDS = 600;
 
 /** Pure so it can be unit tested without a DOM. */
 export function isCompatibleSave(data, world) {
@@ -147,6 +148,66 @@ export class Adventure {
     this.autosave();
   }
 
+  inZeroInterior() {
+    const id = this.roomId || "";
+    return id.startsWith("zero-") && id !== "zero-street";
+  }
+
+  startZeroClock() {
+    if (this.flags.zeroClockStarted) {
+      this.updateClock();
+      return;
+    }
+    this.flags.zeroClockStarted = true;
+    this.flags.zeroLeft = ZERO_SECONDS;
+    this.updateClock();
+    this.autosave();
+  }
+
+  stepZeroClock(dt) {
+    if (!this.flags.zeroClockStarted) return;
+    if (this.flags.zeroEscaped || this.mode !== "play") return;
+    if (!this.root.querySelector("#menu")?.hidden) return;
+    if (this.speechVisible || this.term?.isOpen) return;
+    if (!this.inZeroInterior()) {
+      this.updateClock();
+      return;
+    }
+    const left = Math.max(0, (this.flags.zeroLeft ?? ZERO_SECONDS) - dt);
+    this.flags.zeroLeft = left;
+    this._zeroSave = (this._zeroSave || 0) + dt;
+    if (this._zeroSave > 15) {
+      this._zeroSave = 0;
+      this.autosave();
+    }
+    this.updateClock();
+    if (left <= 0) this.die("Zero comes down", "The megacomplex folds. You do not get a second fridge.");
+  }
+
+  updateClock() {
+    const el = this.root.querySelector("#zero-clock");
+    if (!el) return;
+    if (!this.flags.zeroClockStarted || this.flags.zeroEscaped) {
+      el.hidden = true;
+      return;
+    }
+    const sec = Math.max(0, Math.ceil(this.flags.zeroLeft ?? 0));
+    const m = Math.floor(sec / 60);
+    const s = String(sec % 60).padStart(2, "0");
+    el.textContent = `${m}:${s}`;
+    el.hidden = false;
+    el.classList.toggle("urgent", sec <= 60);
+  }
+
+  die(title, body) {
+    this.flags.zeroLeft = 0;
+    this.hideTalkshot();
+    this.speech = [];
+    this.speechVisible = null;
+    this.root.querySelector("#speech").hidden = true;
+    this.showEnd(title, body);
+  }
+
   async loadImages() {
     const paths = new Set();
     for (const room of Object.values(this.world.rooms)) {
@@ -183,7 +244,7 @@ export class Adventure {
               failed.push(src);
               resolve();
             };
-            img.src = src.includes("?") ? src : `${src}?v=9`;
+            img.src = src.includes("?") ? src : `${src}?v=10`;
           })
       )
     );
@@ -699,7 +760,7 @@ export class Adventure {
     const img = shot.querySelector("#talkshot-img");
     const name = shot.querySelector("#talkshot-name");
     const held = this.img(src);
-    img.src = held?.src || `${src}?v=9`;
+    img.src = held?.src || `${src}?v=10`;
     name.textContent = who === "russell" ? "Russell" : who === "annita" ? "Annita" : who;
     shot.hidden = false;
     this.root.querySelector("#speech")?.classList.add("with-shot");
@@ -1029,6 +1090,7 @@ export class Adventure {
     this.root.querySelector("#speech").hidden = true;
     this.root.querySelector("#room-name").textContent = this.room()?.name || "";
     this.renderInventory();
+    this.updateClock();
   }
 
   save() {
@@ -1079,6 +1141,7 @@ export class Adventure {
     this.hideTalkshot();
     this.setVerb("walk");
     this.renderInventory();
+    this.updateClock();
   }
 
   startIntro() {
@@ -1163,6 +1226,7 @@ export class Adventure {
       this.stepEmerge(dt);
       this.stepNpc(dt);
       this.stepPlayer(dt);
+      this.stepZeroClock(dt);
       if (this.fadeDir !== 0) {
         this.fade += this.fadeDir * dt * 2.6;
         if (this.fadeDir > 0 && this.fade >= 1) {

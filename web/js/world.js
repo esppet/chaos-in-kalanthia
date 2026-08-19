@@ -1,4 +1,6 @@
-/** First playable slice: intro, military base, street at Zero. */
+/** Intro, military base, street at Zero, Building Zero climb. */
+
+import { attachZero } from "./zero.js";
 
 export const world = {
   startRoom: "base-exterior",
@@ -377,14 +379,26 @@ export const world = {
           rect: [356, 178, 72, 100],
           approach: [338, 292],
           look: (game) =>
-            game.flag("talkedToAnnita")
-              ? "Annita. Ash in her hair. She's not leaving until Robert comes out."
-              : "A woman by the doors. She's been shouting at the tower until her voice went.",
+            game.flag("annitaReunited")
+              ? "Annita. She keeps looking at the doors, waiting for her boy."
+              : game.flag("talkedToAnnita")
+                ? "Annita. Ash in her hair. She's not leaving until Robert comes out."
+                : "A woman by the doors. She's been shouting at the tower until her voice went.",
           use: (game) =>
             game.say("She doesn't need a crowbar. She needs someone who can walk into that."),
           take: (game) => game.say("I'm not carrying her. Her kid's still inside."),
           talk: (game) => talkAnnita(game),
           walk: (game) => talkAnnita(game),
+        },
+        {
+          id: "robert-street",
+          name: "Robert",
+          image: "assets/sprites/robert-down.png",
+          rect: [300, 208, 40, 68],
+          approach: [300, 292],
+          visible: (game) => game.flag("robertRescued") && game.flag("annitaReunited"),
+          look: "He came down. He's staying next to her. Good instinct.",
+          talk: "He doesn't have much to say. The roof already used it up.",
         },
       ],
     },
@@ -447,14 +461,17 @@ function leaveZeroStreet(game) {
 }
 
 function talkAnnita(game) {
+  if (world._talkAnnitaAfter && world._talkAnnitaAfter(game)) return;
   const repeat = game.flag("talkedToAnnita");
   game.setFlag("talkedToAnnita");
   game.converse({
     actor: "annita",
     playerStand: { x: 338, y: 292, dir: "right" },
     actorStand: { x: 400, y: 290, facing: "left" },
-    lines: repeat
-      ? [{ who: "annita", text: "Every minute the stairs get worse. Please." }]
+    lines: game.flag("robertRescued")
+      ? [{ who: "annita", text: "Bring him down. I'll wait." }]
+      : repeat
+        ? [{ who: "annita", text: "Every minute the stairs get worse. Please." }]
       : [
           { who: "annita", text: "You. Military. Please." },
           { who: "russell", text: "The log said a boy was still inside." },
@@ -470,8 +487,7 @@ function tryZeroDoors(game) {
     game.say("Someone's at the doors. I should hear her first.");
     return;
   }
-  game.say([
-    "The lobby's open. Stairs in the dark.",
-    "The second I go in, that ten-minute clock starts. Not yet.",
-  ]);
+  game.changeRoom("zero-lobby", { x: 320, y: 322, dir: "up" });
 }
+
+attachZero(world);
