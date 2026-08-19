@@ -484,6 +484,10 @@ function talkAnnita(game) {
 }
 
 function tryZeroDoors(game) {
+  if (game.flag("zeroCollapsed")) {
+    game.say("There's no lobby. There's a dust cloud.");
+    return;
+  }
   if (!game.flag("talkedToAnnita")) {
     game.say("Someone's at the doors. I should hear her first.");
     return;

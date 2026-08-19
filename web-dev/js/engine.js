@@ -168,13 +168,9 @@ export class Adventure {
 
   stepZeroClock(dt) {
     if (!this.flags.zeroClockStarted) return;
-    if (this.flags.zeroEscaped || this.mode !== "play") return;
+    if (this.flags.zeroCollapsed || this.mode !== "play") return;
     if (!this.root.querySelector("#menu")?.hidden) return;
     if (this.speechVisible || this.term?.isOpen) return;
-    if (!this.inZeroInterior()) {
-      this.updateClock();
-      return;
-    }
     const left = Math.max(0, (this.flags.zeroLeft ?? ZERO_SECONDS) - dt);
     this.flags.zeroLeft = left;
     this._zeroSave = (this._zeroSave || 0) + dt;
@@ -189,7 +185,7 @@ export class Adventure {
   updateClock() {
     const el = this.root.querySelector("#zero-clock");
     if (!el) return;
-    if (!this.flags.zeroClockStarted || this.flags.zeroEscaped) {
+    if (!this.flags.zeroClockStarted || this.flags.zeroCollapsed) {
       el.hidden = true;
       return;
     }
@@ -213,6 +209,7 @@ export class Adventure {
   startCollapse() {
     if (this.mode === "collapse" || this.mode === "end") return;
     this.flags.zeroLeft = 0;
+    this._collapseFatal = this.inZeroInterior();
     this.hideTalkshot();
     this.speech = [];
     this.speechVisible = null;
@@ -222,6 +219,17 @@ export class Adventure {
     this.mode = "collapse";
     this.collapseT = 0;
     this.updateClock();
+  }
+
+  surviveCollapse() {
+    this.flags.zeroCollapsed = true;
+    this.mode = "play";
+    this.collapseT = 0;
+    this.root.querySelector("#hud").hidden = false;
+    this.updateClock();
+    if (this.room()?.music) this.music.play(this.room().music);
+    this.say("Zero comes down. You're far enough to hear it, not to be it.");
+    this.autosave();
   }
 
   startFollow() {
@@ -1386,7 +1394,11 @@ export class Adventure {
       this.collapseT += dt;
       this.draw();
       if (this.collapseT >= 3.3) {
-        this.showEnd("Zero comes down", "The megacomplex folds. You do not get a second fridge.");
+        if (this._collapseFatal) {
+          this.showEnd("Zero comes down", "The megacomplex folds. You do not get a second fridge.");
+        } else {
+          this.surviveCollapse();
+        }
       }
       requestAnimationFrame(this.tick);
       return;
