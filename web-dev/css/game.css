@@ -25,6 +25,63 @@
   display: none !important;
 }
 
+#dev-dock {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 40;
+  font-family: VT323, "Courier New", monospace;
+}
+
+#dev-rooms-toggle {
+  appearance: none;
+  font: 18px VT323, monospace;
+  color: #140e0a;
+  background: #e8a23a;
+  border: 2px solid #f3d08a;
+  padding: 4px 12px 2px;
+  cursor: pointer;
+}
+
+#dev-rooms {
+  margin-top: 6px;
+  width: 240px;
+  max-height: calc(100vh - 56px);
+  overflow: auto;
+  background: rgba(8, 6, 10, 0.94);
+  border: 1px solid #6a4a22;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+#dev-rooms .dev-rooms-head {
+  padding: 6px 8px 4px;
+  color: #e8a23a;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #3a2a18;
+}
+
+#dev-rooms-list button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: 16px VT323, monospace;
+  color: #e8d7b8;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #2a1c12;
+  padding: 5px 8px 4px;
+  cursor: pointer;
+}
+
+#dev-rooms-list button:hover,
+#dev-rooms-list button.here {
+  color: #140e0a;
+  background: #e8a23a;
+}
+
 html,
 body,
 #app,

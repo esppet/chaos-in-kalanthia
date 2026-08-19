@@ -12,4 +12,9 @@ sed -i 's/chaos-in-kalanthia-dev-save/chaos-in-kalanthia-save/' "${ROOT}/web/js/
 sed -i 's/chaos-in-kalanthia-dev-music-muted/chaos-in-kalanthia-music-muted/' "${ROOT}/web/js/music.js"
 sed -i 's/<title>Chaos in Kalanthia (dev)<\/title>/<title>Chaos in Kalanthia<\/title>/' "${ROOT}/web/index.html"
 sed -i 's/Developer build/A point-and-click adventure/' "${ROOT}/web/index.html"
+# Screen selector and other dev-only tools must not ship in stable.
+rm -f "${ROOT}/web/js/devtools.js"
+if [[ -f "${ROOT}/web/js/main.js" ]]; then
+  sed -i '/devtools/d' "${ROOT}/web/js/main.js"
+fi
 echo "Promoted web-dev/ → web/  (backup stamp ${STAMP})"

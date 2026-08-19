@@ -1440,6 +1440,41 @@ export class Adventure {
     });
   }
 
+  jumpToRoom(id) {
+    const room = this.world.rooms[id];
+    if (!room) return;
+    this.flags.outOfFridge = true;
+    this.flags.logRead = true;
+    this.flags.talkedToAnnita = true;
+    this.flags.doorForced = true;
+    this.flags.wokeInWreckage = true;
+    this.speech = [];
+    this.speechVisible = null;
+    this.hideTalkshot();
+    this.pending = null;
+    this.player.path = [];
+    this.moving = false;
+    this.fade = 0;
+    this.fadeDir = 0;
+    this.mode = "play";
+    this.root.querySelector("#title").hidden = true;
+    this.root.querySelector("#intro").hidden = true;
+    this.root.querySelector("#endcard").hidden = true;
+    this.root.querySelector("#menu").hidden = true;
+    this.root.querySelector("#hud").hidden = false;
+    this.roomId = id;
+    const s = room.start;
+    this.player.x = s.x;
+    this.player.y = s.y;
+    this.player.dir = s.dir || "right";
+    this.initRoomActors();
+    if (this.flags.robertFollowing && id !== "zero-lab") this.placeCompanionNearPlayer();
+    this.root.querySelector("#room-name").textContent = room.name;
+    if (room.music) this.music.play(room.music);
+    this.updateCursor();
+    this.updateClock();
+  }
+
   async start() {
     await this.loadImages();
     if (this.world.music) await this.music.load(this.world.music);
