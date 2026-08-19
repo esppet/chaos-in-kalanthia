@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "web/**"
+      - "web-dev/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -26,8 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Assemble stable + developer site
+        run: |
+          mkdir -p _site/dev
+          cp -a web/. _site/
+          cp -a web-dev/. _site/dev/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: web
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

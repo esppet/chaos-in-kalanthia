@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chaos in Kalanthia (dev)</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/game.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div id="letterbox">
+        <div id="scaler">
+        <div id="stage">
+          <canvas id="game" width="640" height="360" aria-label="Game"></canvas>
+
+          <div id="hud" hidden>
+            <div id="iconbar">
+              <div class="verbs">
+                <button data-verb="walk" class="active" title="Walk (1)">
+                  <img src="assets/ui/icon-walk.png" alt="" />Walk
+                </button>
+                <button data-verb="look" title="Look (2)">
+                  <img src="assets/ui/icon-look.png" alt="" />Look
+                </button>
+                <button data-verb="use" title="Use (3)">
+                  <img src="assets/ui/icon-use.png" alt="" />Use
+                </button>
+                <button data-verb="pickup" title="Pick up (4)">
+                  <img src="assets/ui/icon-pickup.png" alt="" />Pick up
+                </button>
+                <button data-verb="talk" title="Talk (5)">
+                  <img src="assets/ui/icon-talk.png" alt="" />Talk
+                </button>
+              </div>
+              <div id="room-name"></div>
+              <div id="zero-clock" hidden>10:00</div>
+              <div class="tools">
+                <button id="btn-inv" title="Inventory (I)">
+                  <img src="assets/ui/icon-inv.png" alt="" />Inv
+                </button>
+                <button id="btn-menu" title="Menu (Esc)">Menu</button>
+              </div>
+            </div>
+            <div id="status"></div>
+            <div id="inventory" hidden>
+              <div class="inv-label">Inventory</div>
+              <div id="inv-slots"></div>
+            </div>
+          </div>
+
+          <div id="talkshot" hidden>
+            <figure>
+              <img id="talkshot-img" alt="" />
+              <figcaption id="talkshot-name"></figcaption>
+            </figure>
+          </div>
+          <div id="speech" hidden></div>
+
+          <div id="boot">Loading Kalanthia…</div>
+
+          <div id="title" hidden>
+            <div class="title-inner">
+              <p class="eyebrow">Developer build</p>
+              <h1>Chaos in Kalanthia</h1>
+              <p class="tag">Off-world. After the meteor. Before the verdict.</p>
+              <div class="title-actions">
+                <button id="btn-begin">Begin</button>
+                <button id="btn-continue" hidden>Continue</button>
+              </div>
+              <p class="fine">Click to walk · 1–4 verbs · Esc menu · M music</p>
+              <button type="button" class="ghost" data-music-toggle>Music: On</button>
+            </div>
+          </div>
+
+          <div id="intro" hidden>
+            <div id="intro-lines"></div>
+            <p class="hint" hidden>Click to continue</p>
+          </div>
+
+          <div id="menu" hidden>
+            <div class="panel">
+              <h2>Paused</h2>
+              <button id="btn-resume">Resume</button>
+              <button id="btn-save">Save</button>
+              <button id="btn-load">Load</button>
+              <button id="btn-restart">Restart</button>
+              <button type="button" class="ghost" data-music-toggle>Music: On</button>
+            </div>
+          </div>
+
+          <div id="crt" hidden>
+            <div class="crt-bezel">
+              <div class="crt-brand">KALANTHIA CMD · MK-7</div>
+              <div class="crt-screen">
+                <div id="crt-out"></div>
+                <div id="crt-line">
+                  <span id="crt-prompt">root@cmd:~#</span>
+                  <input id="crt-in" type="text" autocomplete="off" spellcheck="false" />
+                </div>
+                <div id="crt-nano" hidden>
+                  <div class="nano-bar">GNU nano 2.0.6&nbsp;&nbsp;File: help.txt</div>
+                  <pre id="crt-nano-body"></pre>
+                  <div class="nano-bar">^X Exit&nbsp;&nbsp;&nbsp;^O WriteOut (disabled)</div>
+                </div>
+              </div>
+              <div class="crt-chin">
+                <span class="crt-led"></span>
+                <button type="button" id="crt-power">POWER</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="endcard" hidden>
+            <div class="panel">
+              <h2>To be continued</h2>
+              <p></p>
+              <p class="fine">Your save is in this browser. Refresh and hit Continue.</p>
+              <button id="btn-end-title">Title</button>
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

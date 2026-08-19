@@ -6,15 +6,25 @@ Russell, a replicant soldier, survives a meteor strike on the off-world colony K
 
 ## Play (browser)
 
-**Live:** [https://esppet.github.io/chaos-in-kalanthia/](https://esppet.github.io/chaos-in-kalanthia/)
+Two builds are published from this repo:
+
+| Build | URL | Source | How often |
+|-------|-----|--------|-----------|
+| **Stable** | [https://esppet.github.io/chaos-in-kalanthia/](https://esppet.github.io/chaos-in-kalanthia/) | `web/` | Promoted when a slice is ready |
+| **Developer** | [https://esppet.github.io/chaos-in-kalanthia/dev/](https://esppet.github.io/chaos-in-kalanthia/dev/) | `web-dev/` | Daily work |
+
+Saves do not mix: each build uses its own `localStorage` key.
 
 Or run it locally:
 
 ```bash
-./scripts/run-web.sh
+./scripts/run-web.sh       # stable, port 8765
+./scripts/run-web-dev.sh   # developer, port 8766
 ```
 
-Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) on this machine. From another device on the same network, use the `other devices` URL the script prints (port 8765). Optional port: `./scripts/run-web.sh 9000`.
+Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) or [http://127.0.0.1:8766/](http://127.0.0.1:8766/). From another device on the same network, use the `other devices` URL the script prints. Optional port: `./scripts/run-web.sh 9000`.
+
+To copy the developer game over the stable one: `./scripts/promote-dev.sh` (backs up `web/` first).
 
 | Control | Action |
 |---------|--------|
@@ -50,7 +60,8 @@ Full story, room map, and endings: [docs/DESIGN.md](docs/DESIGN.md)
 ## Project layout
 
 ```
-├── web/                   # Playable HTML5 game (open this)
+├── web/                   # Stable HTML5 game
+├── web-dev/               # Developer HTML5 game (daily work)
 │   ├── index.html
 │   ├── js/                # Engine, pathfinding, room scripts
 │   └── assets/            # Rooms, Russell, items, UI
